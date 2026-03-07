@@ -2,6 +2,10 @@
   "name": "alpine-mcp",
   "version": "1.0.0",
   "description": "MCP server providing Alpine.js documentation and reference",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BillyNoyes/alpine-mcp"
+  },
   "type": "module",
   "bin": {
     "alpine-mcp": "build/index.js"
