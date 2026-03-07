@@ -13,12 +13,12 @@ An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that 
 
 ## Installation
 
-### Claude Desktop (recommended)
+### Claude Desktop
 
-Add the following to your `claude_desktop_config.json`:
+Add to your `claude_desktop_config.json`:
 
-**macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
-**Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
 
 ```json
 {
@@ -31,11 +31,69 @@ Add the following to your `claude_desktop_config.json`:
 }
 ```
 
-Restart Claude Desktop. The Alpine.js docs will be available as resources in every conversation.
+Restart Claude Desktop.
 
-### Other MCP clients
+### Claude Code
 
-Any client that supports the Model Context Protocol stdio transport can use this server. Run it directly:
+Run in your terminal:
+
+```sh
+claude mcp add alpine -- npx -y alpine-mcp
+```
+
+Or add it to a project by creating/editing `.claude/settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "alpine": {
+      "command": "npx",
+      "args": ["-y", "alpine-mcp"]
+    }
+  }
+}
+```
+
+### Cursor
+
+Add to your global MCP config at `~/.cursor/mcp.json`, or create `.cursor/mcp.json` in your project root:
+
+```json
+{
+  "mcpServers": {
+    "alpine": {
+      "command": "npx",
+      "args": ["-y", "alpine-mcp"]
+    }
+  }
+}
+```
+
+Restart Cursor.
+
+### VS Code
+
+Add to your user `settings.json` (open with **Preferences: Open User Settings (JSON)**):
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "alpine": {
+        "type": "stdio",
+        "command": "npx",
+        "args": ["-y", "alpine-mcp"]
+      }
+    }
+  }
+}
+```
+
+Or scope it to a workspace by adding the same block to `.vscode/settings.json`.
+
+### Any MCP client
+
+Any client that supports the Model Context Protocol stdio transport can run it directly:
 
 ```sh
 npx alpine-mcp
@@ -66,7 +124,7 @@ npm install
 npm run build
 ```
 
-### Local Claude Desktop config
+### Local config
 
 ```json
 {
