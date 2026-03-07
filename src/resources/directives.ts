@@ -1,0 +1,1649 @@
+export const directives = `# Alpine.js Directives
+
+## x-data
+
+Everything in Alpine starts with the \`x-data\` directive.
+
+\`x-data\` defines a chunk of HTML as an Alpine component and provides the reactive data for that component to reference.
+
+Here's an example of a contrived dropdown component:
+
+\`\`\`alpine
+<div x-data="{ open: false }">
+    <button @click="open = ! open">Toggle Content</button>
+
+    <div x-show="open">
+        Content...
+    </div>
+</div>
+\`\`\`
+
+Don't worry about the other directives in this example (\`@click\` and \`x-show\`), we'll get to those in a bit. For now, let's focus on \`x-data\`.
+
+### Scope
+
+Properties defined in an \`x-data\` directive are available to all element children. Even ones inside other, nested \`x-data\` components.
+
+For example:
+
+\`\`\`alpine
+<div x-data="{ foo: 'bar' }">
+    <span x-text="foo"><!-- Will output: "bar" --></span>
+
+    <div x-data="{ bar: 'baz' }">
+        <span x-text="foo"><!-- Will output: "bar" --></span>
+
+        <div x-data="{ foo: 'bob' }">
+            <span x-text="foo"><!-- Will output: "bob" --></span>
+        </div>
+    </div>
+</div>
+\`\`\`
+
+### Methods
+
+Because \`x-data\` is evaluated as a normal JavaScript object, in addition to state, you can store methods and even getters.
+
+For example, let's extract the "Toggle Content" behavior into a method on \`x-data\`.
+
+\`\`\`alpine
+<div x-data="{ open: false, toggle() { this.open = ! this.open } }">
+    <button @click="toggle()">Toggle Content</button>
+
+    <div x-show="open">
+        Content...
+    </div>
+</div>
+\`\`\`
+
+Notice the added \`toggle() { this.open = ! this.open }\` method on \`x-data\`. This method can now be called from anywhere inside the component.
+
+You'll also notice the usage of \`this.\` to access state on the object itself. This is because Alpine evaluates this data object like any standard JavaScript object with a \`this\` context.
+
+If you prefer, you can leave the calling parenthesis off of the \`toggle\` method completely. For example:
+
+\`\`\`alpine
+<!-- Before -->
+<button @click="toggle()">...</button>
+
+<!-- After -->
+<button @click="toggle">...</button>
+\`\`\`
+
+### Getters
+
+JavaScript [getters](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/get) are handy when the sole purpose of a method is to return data based on other state.
+
+Think of them like "computed properties" (although, they are not cached like Vue's computed properties).
+
+Let's refactor our component to use a getter called \`isOpen\` instead of accessing \`open\` directly.
+
+\`\`\`alpine
+<div x-data="{
+    open: false,
+    get isOpen() { return this.open },
+    toggle() { this.open = ! this.open },
+}">
+    <button @click="toggle()">Toggle Content</button>
+
+    <div x-show="isOpen">
+        Content...
+    </div>
+</div>
+\`\`\`
+
+Notice the "Content" now depends on the \`isOpen\` getter instead of the \`open\` property directly.
+
+In this case there is no tangible benefit. But in some cases, getters are helpful for providing a more expressive syntax in your components.
+
+### Data-less components
+
+Occasionally, you want to create an Alpine component, but you don't need any data.
+
+In these cases, you can always pass in an empty object.
+
+\`\`\`alpine
+<div x-data="{}">
+\`\`\`
+
+However, if you wish, you can also eliminate the attribute value entirely if it looks better to you.
+
+\`\`\`alpine
+<div x-data>
+\`\`\`
+
+### Single-element components
+
+Sometimes you may only have a single element inside your Alpine component, like the following:
+
+\`\`\`alpine
+<div x-data="{ open: true }">
+    <button @click="open = false" x-show="open">Hide Me</button>
+</div>
+\`\`\`
+
+In these cases, you can declare \`x-data\` directly on that single element:
+
+\`\`\`alpine
+<button x-data="{ open: true }" @click="open = false" x-show="open">
+    Hide Me
+</button>
+\`\`\`
+
+### Re-usable Data
+
+If you find yourself duplicating the contents of \`x-data\`, or you find the inline syntax verbose, you can extract the \`x-data\` object out to a dedicated component using \`Alpine.data\`.
+
+Here's a quick example:
+
+\`\`\`alpine
+<div x-data="dropdown">
+    <button @click="toggle">Toggle Content</button>
+
+    <div x-show="open">
+        Content...
+    </div>
+</div>
+
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('dropdown', () => ({
+            open: false,
+
+            toggle() {
+                this.open = ! this.open
+            },
+        }))
+    })
+</script>
+\`\`\`
+
+[→ Read more about \`Alpine.data(...)\`](/globals/alpine-data)
+
+---
+
+## x-init
+
+The \`x-init\` directive allows you to hook into the initialization phase of any element in Alpine.
+
+\`\`\`alpine
+<div x-init="console.log('I\\'m being initialized!')"></div>
+\`\`\`
+
+In the above example, "I'm being initialized!" will be output in the console before it makes further DOM updates.
+
+Consider another example where \`x-init\` is used to fetch some JSON and store it in \`x-data\` before the component is processed.
+
+\`\`\`alpine
+<div
+    x-data="{ posts: [] }"
+    x-init="posts = await (await fetch('/posts')).json()"
+>...</div>
+\`\`\`
+
+### $nextTick
+
+Sometimes, you want to wait until after Alpine has completely finished rendering to execute some code.
+
+This would be something like \`useEffect(..., [])\` in react, or \`mount\` in Vue.
+
+By using Alpine's internal \`$nextTick\` magic, you can make this happen.
+
+\`\`\`alpine
+<div x-init="$nextTick(() => { ... })"></div>
+\`\`\`
+
+### Standalone \`x-init\`
+
+You can add \`x-init\` to any elements inside or outside an \`x-data\` HTML block. For example:
+
+\`\`\`alpine
+<div x-data>
+    <span x-init="console.log('I can initialize')"></span>
+</div>
+
+<span x-init="console.log('I can initialize too')"></span>
+\`\`\`
+
+### Auto-evaluate init() method
+
+If the \`x-data\` object of a component contains an \`init()\` method, it will be called automatically. For example:
+
+\`\`\`alpine
+<div x-data="{
+    init() {
+        console.log('I am called automatically')
+    }
+}">
+    ...
+</div>
+\`\`\`
+
+This is also the case for components that were registered using the \`Alpine.data()\` syntax.
+
+\`\`\`js
+Alpine.data('dropdown', () => ({
+    init() {
+        console.log('I will get evaluated when initializing each "dropdown" component.')
+    },
+}))
+\`\`\`
+
+If you have both an \`x-data\` object containing an \`init()\` method and an \`x-init\` directive, the \`x-data\` method will be called before the directive.
+
+\`\`\`alpine
+<div
+    x-data="{
+        init() {
+            console.log('I am called first')
+        }
+    }"
+    x-init="console.log('I am called second')"
+    >
+    ...
+</div>
+\`\`\`
+
+---
+
+## x-show
+
+\`x-show\` is one of the most useful and powerful directives in Alpine. It provides an expressive way to show and hide DOM elements.
+
+Here's an example of a simple dropdown component using \`x-show\`.
+
+\`\`\`alpine
+<div x-data="{ open: false }">
+    <button x-on:click="open = ! open">Toggle Dropdown</button>
+
+    <div x-show="open">
+        Dropdown Contents...
+    </div>
+</div>
+\`\`\`
+
+When the "Toggle Dropdown" button is clicked, the dropdown will show and hide accordingly.
+
+> If the "default" state of an \`x-show\` on page load is "false", you may want to use \`x-cloak\` on the page to avoid "page flicker" (The effect that happens when the browser renders your content before Alpine is finished initializing and hiding it.) You can learn more about \`x-cloak\` in its documentation.
+
+### With transitions
+
+If you want to apply smooth transitions to the \`x-show\` behavior, you can use it in conjunction with \`x-transition\`. You can learn more about that directive [here](/directives/transition), but here's a quick example of the same component as above, just with transitions applied.
+
+\`\`\`alpine
+<div x-data="{ open: false }">
+    <button x-on:click="open = ! open">Toggle Dropdown</button>
+
+    <div x-show="open" x-transition>
+        Dropdown Contents...
+    </div>
+</div>
+\`\`\`
+
+### Using the important modifier
+
+Sometimes you need to apply a little more force to actually hide an element. In cases where a CSS selector applies the \`display\` property with the \`!important\` flag, it will take precedence over the inline style set by Alpine.
+
+In these cases you may use the \`.important\` modifier to set the inline style to \`display: none !important\`.
+
+\`\`\`alpine
+<div x-data="{ open: false }">
+    <button x-on:click="open = ! open">Toggle Dropdown</button>
+
+    <div x-show.important="open">
+        Dropdown Contents...
+    </div>
+</div>
+\`\`\`
+
+---
+
+## x-bind
+
+\`x-bind\` allows you to set HTML attributes on elements based on the result of JavaScript expressions.
+
+For example, here's a component where we will use \`x-bind\` to set the placeholder value of an input.
+
+\`\`\`alpine
+<div x-data="{ placeholderText: 'Type here...' }">
+    <input type="text" x-bind:placeholder="placeholderText">
+</div>
+\`\`\`
+
+### Shorthand syntax
+
+If \`x-bind:\` is too verbose for your liking, you can use the shorthand: \`:\`. For example, here is the same input element as above, but refactored to use the shorthand syntax.
+
+\`\`\`alpine
+<input type="text" :placeholder="placeholderText">
+\`\`\`
+
+> Despite not being included in the above snippet, \`x-bind\` cannot be used if no parent element has \`x-data\` defined. [→ Read more about \`x-data\`](/directives/data)
+
+### Binding classes
+
+\`x-bind\` is most often useful for setting specific classes on an element based on your Alpine state.
+
+Here's a simple example of a simple dropdown toggle, but instead of using \`x-show\`, we'll use a "hidden" class to toggle an element.
+
+\`\`\`alpine
+<div x-data="{ open: false }">
+    <button x-on:click="open = ! open">Toggle Dropdown</button>
+
+    <div :class="open ? '' : 'hidden'">
+        Dropdown Contents...
+    </div>
+</div>
+\`\`\`
+
+Now, when \`open\` is \`false\`, the "hidden" class will be added to the dropdown.
+
+#### Shorthand conditionals
+
+In cases like these, if you prefer a less verbose syntax you can use JavaScript's short-circuit evaluation instead of standard conditionals:
+
+\`\`\`alpine
+<div :class="show ? '' : 'hidden'">
+<!-- Is equivalent to: -->
+<div :class="show || 'hidden'">
+\`\`\`
+
+The inverse is also available to you. Suppose instead of \`open\`, we use a variable with the opposite value: \`closed\`.
+
+\`\`\`alpine
+<div :class="closed ? 'hidden' : ''">
+<!-- Is equivalent to: -->
+<div :class="closed && 'hidden'">
+\`\`\`
+
+#### Class object syntax
+
+Alpine offers an additional syntax for toggling classes if you prefer. By passing a JavaScript object where the classes are the keys and booleans are the values, Alpine will know which classes to apply and which to remove. For example:
+
+\`\`\`alpine
+<div :class="{ 'hidden': ! show }">
+\`\`\`
+
+This technique offers a unique advantage to other methods. When using object-syntax, Alpine will NOT preserve original classes applied to an element's \`class\` attribute.
+
+For example, if you wanted to apply the "hidden" class to an element before Alpine loads, AND use Alpine to toggle its existence you can only achieve that behavior using object-syntax:
+
+\`\`\`alpine
+<div class="hidden" :class="{ 'hidden': ! show }">
+\`\`\`
+
+In case that confused you, let's dig deeper into how Alpine handles \`x-bind:class\` differently than other attributes.
+
+#### Special behavior
+
+\`x-bind:class\` behaves differently than other attributes under the hood.
+
+Consider the following case.
+
+\`\`\`alpine
+<div class="opacity-50" :class="hide && 'hidden'">
+\`\`\`
+
+If "class" were any other attribute, the \`:class\` binding would overwrite any existing class attribute, causing \`opacity-50\` to be overwritten by either \`hidden\` or \`''\`.
+
+However, Alpine treats \`class\` bindings differently. It's smart enough to preserve existing classes on an element.
+
+For example, if \`hide\` is true, the above example will result in the following DOM element:
+
+\`\`\`alpine
+<div class="opacity-50 hidden">
+\`\`\`
+
+If \`hide\` is false, the DOM element will look like:
+
+\`\`\`alpine
+<div class="opacity-50">
+\`\`\`
+
+This behavior should be invisible and intuitive to most users, but it is worth mentioning explicitly for the inquiring developer or any special cases that might crop up.
+
+### Binding styles
+
+Similar to the special syntax for binding classes with JavaScript objects, Alpine also offers an object-based syntax for binding \`style\` attributes.
+
+Just like the class objects, this syntax is entirely optional. Only use it if it affords you some advantage.
+
+\`\`\`alpine
+<div :style="{ color: 'red', display: 'flex' }">
+
+<!-- Will render: -->
+<div style="color: red; display: flex;" ...>
+\`\`\`
+
+Conditional inline styling is possible using expressions just like with x-bind:class. Short circuit operators can be used here as well by using a styles object as the second operand.
+
+\`\`\`alpine
+<div x-bind:style="true && { color: 'red' }">
+
+<!-- Will render: -->
+<div style="color: red;">
+\`\`\`
+
+One advantage of this approach is being able to mix it in with existing styles on an element:
+
+\`\`\`alpine
+<div style="padding: 1rem;" :style="{ color: 'red', display: 'flex' }">
+
+<!-- Will render: -->
+<div style="padding: 1rem; color: red; display: flex;" ...>
+\`\`\`
+
+And like most expressions in Alpine, you can always use the result of a JavaScript expression as the reference:
+
+\`\`\`alpine
+<div x-data="{ styles: { color: 'red', display: 'flex' }}">
+    <div :style="styles">
+</div>
+
+<!-- Will render: -->
+<div ...>
+    <div style="color: red; display: flex;" ...>
+</div>
+\`\`\`
+
+### Binding Alpine Directives Directly
+
+\`x-bind\` allows you to bind an object of different directives and attributes to an element.
+
+The object keys can be anything you would normally write as an attribute name in Alpine. This includes Alpine directives and modifiers, but also plain HTML attributes. The object values are either plain strings, or in the case of dynamic Alpine directives, callbacks to be evaluated by Alpine.
+
+\`\`\`alpine
+<div x-data="dropdown">
+    <button x-bind="trigger">Open Dropdown</button>
+
+    <span x-bind="dialogue">Dropdown Contents</span>
+</div>
+
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('dropdown', () => ({
+            open: false,
+
+            trigger: {
+                ['x-ref']: 'trigger',
+                ['@click']() {
+                    this.open = true
+                },
+            },
+
+            dialogue: {
+                ['x-show']() {
+                    return this.open
+                },
+                ['@click.outside']() {
+                    this.open = false
+                },
+            },
+        }))
+    })
+</script>
+\`\`\`
+
+There are a couple of caveats to this usage of \`x-bind\`:
+
+> When the directive being "bound" or "applied" is \`x-for\`, you should return a normal expression string from the callback. For example: \`['x-for']() { return 'item in items' }\`
+
+---
+
+## x-on
+
+\`x-on\` allows you to easily run code on dispatched DOM events.
+
+Here's an example of simple button that shows an alert when clicked.
+
+\`\`\`alpine
+<button x-on:click="alert('Hello World!')">Say Hi</button>
+\`\`\`
+
+> \`x-on\` can only listen for events with lower case names, as HTML attributes are case-insensitive. Writing \`x-on:CLICK\` will listen for an event named \`click\`. If you need to listen for a custom event with a camelCase name, you can use the [\`.camel\` helper](#camel) to work around this limitation. Alternatively, you can use [\`x-bind\`](/directives/bind#bind-directives) to attach an \`x-on\` directive to an element in javascript code (where case will be preserved).
+
+### Shorthand syntax
+
+If \`x-on:\` is too verbose for your tastes, you can use the shorthand syntax: \`@\`.
+
+Here's the same component as above, but using the shorthand syntax instead:
+
+\`\`\`alpine
+<button @click="alert('Hello World!')">Say Hi</button>
+\`\`\`
+
+> Despite not being included in the above snippet, \`x-on\` cannot be used if no parent element has \`x-data\` defined. [→ Read more about \`x-data\`](/directives/data)
+
+### The event object
+
+If you wish to access the native JavaScript event object from your expression, you can use Alpine's magic \`$event\` property.
+
+\`\`\`alpine
+<button @click="alert($event.target.getAttribute('message'))" message="Hello World">Say Hi</button>
+\`\`\`
+
+In addition, Alpine also passes the event object to any methods referenced without trailing parenthesis. For example:
+
+\`\`\`alpine
+<button @click="handleClick">...</button>
+
+<script>
+    function handleClick(e) {
+        // Now you can access the event object (e) directly
+    }
+</script>
+\`\`\`
+
+### Keyboard events
+
+Alpine makes it easy to listen for \`keydown\` and \`keyup\` events on specific keys.
+
+Here's an example of listening for the \`Enter\` key inside an input element.
+
+\`\`\`alpine
+<input type="text" @keyup.enter="alert('Submitted!')">
+\`\`\`
+
+You can also chain these key modifiers to achieve more complex listeners.
+
+Here's a listener that runs when the \`Shift\` key is held and \`Enter\` is pressed, but not when \`Enter\` is pressed alone.
+
+\`\`\`alpine
+<input type="text" @keyup.shift.enter="alert('Submitted!')">
+\`\`\`
+
+You can directly use any valid key names exposed via [\`KeyboardEvent.key\`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values) as modifiers by converting them to kebab-case.
+
+\`\`\`alpine
+<input type="text" @keyup.page-down="alert('Submitted!')">
+\`\`\`
+
+For easy reference, here is a list of common keys you may want to listen for.
+
+| Modifier                       | Keyboard Key                       |
+| ------------------------------ | ---------------------------------- |
+| \`.shift\`                       | Shift                              |
+| \`.enter\`                       | Enter                              |
+| \`.space\`                       | Space                              |
+| \`.ctrl\`                        | Ctrl                               |
+| \`.cmd\`                         | Cmd                                |
+| \`.meta\`                        | Cmd on Mac, Windows key on Windows |
+| \`.alt\`                         | Alt                                |
+| \`.up\` \`.down\` \`.left\` \`.right\` | Up/Down/Left/Right arrows          |
+| \`.escape\`                      | Escape                             |
+| \`.tab\`                         | Tab                                |
+| \`.caps-lock\`                   | Caps Lock                          |
+| \`.equal\`                       | Equal, \`=\`                         |
+| \`.period\`                      | Period, \`.\`                        |
+| \`.comma\`                       | Comma, \`,\`                         |
+| \`.slash\`                       | Forward Slash, \`/\`                 |
+
+### Mouse events
+
+Like the above Keyboard Events, Alpine allows the use of some key modifiers for handling \`click\` events.
+
+| Modifier | Event Key |
+| -------- | --------- |
+| \`.shift\` | shiftKey  |
+| \`.ctrl\`  | ctrlKey   |
+| \`.cmd\`   | metaKey   |
+| \`.meta\`  | metaKey   |
+| \`.alt\`   | altKey    |
+
+These work on \`click\`, \`auxclick\`, \`context\` and \`dblclick\` events, and even \`mouseover\`, \`mousemove\`, \`mouseenter\`, \`mouseleave\`, \`mouseout\`, \`mouseup\` and \`mousedown\`.
+
+Here's an example of a button that changes behaviour when the \`Shift\` key is held down.
+
+\`\`\`alpine
+<button type="button"
+    x-data="{ message: 'select' }"
+    @click="message = 'selected'"
+    @click.shift="message = 'added to selection'"
+    @mousemove.shift="message = 'add to selection'"
+    @mouseout="message = 'select'"
+    x-text="message"></button>
+\`\`\`
+
+> Note: Normal click events with some modifiers (like \`ctrl\`) will automatically become \`contextmenu\` events in most browsers. Similarly, \`right-click\` events will trigger a \`contextmenu\` event, but will also trigger an \`auxclick\` event if the \`contextmenu\` event is prevented.
+
+### Custom events
+
+Alpine event listeners are a wrapper for native DOM event listeners. Therefore, they can listen for ANY DOM event, including custom events.
+
+Here's an example of a component that dispatches a custom DOM event and listens for it as well.
+
+\`\`\`alpine
+<div x-data @foo="alert('Button Was Clicked!')">
+    <button @click="$event.target.dispatchEvent(new CustomEvent('foo', { bubbles: true }))">...</button>
+</div>
+\`\`\`
+
+When the button is clicked, the \`@foo\` listener will be called.
+
+Because the \`.dispatchEvent\` API is verbose, Alpine offers a \`$dispatch\` helper to simplify things.
+
+Here's the same component re-written with the \`$dispatch\` magic property.
+
+\`\`\`alpine
+<div x-data @foo="alert('Button Was Clicked!')">
+    <button @click="$dispatch('foo')">...</button>
+</div>
+\`\`\`
+
+[→ Read more about \`$dispatch\`](/magics/dispatch)
+
+### Modifiers
+
+Alpine offers a number of directive modifiers to customize the behavior of your event listeners.
+
+#### .prevent
+
+\`.prevent\` is the equivalent of calling \`.preventDefault()\` inside a listener on the browser event object.
+
+\`\`\`alpine
+<form @submit.prevent="console.log('submitted')" action="/foo">
+    <button>Submit</button>
+</form>
+\`\`\`
+
+In the above example, with the \`.prevent\`, clicking the button will NOT submit the form to the \`/foo\` endpoint. Instead, Alpine's listener will handle it and "prevent" the event from being handled any further.
+
+#### .stop
+
+Similar to \`.prevent\`, \`.stop\` is the equivalent of calling \`.stopPropagation()\` inside a listener on the browser event object.
+
+\`\`\`alpine
+<div @click="console.log('I will not get logged')">
+    <button @click.stop>Click Me</button>
+</div>
+\`\`\`
+
+In the above example, clicking the button WON'T log the message. This is because we are stopping the propagation of the event immediately and not allowing it to "bubble" up to the \`<div>\` with the \`@click\` listener on it.
+
+#### .outside
+
+\`.outside\` is a convenience helper for listening for a click outside of the element it is attached to. Here's a simple dropdown component example to demonstrate:
+
+\`\`\`alpine
+<div x-data="{ open: false }">
+    <button @click="open = ! open">Toggle</button>
+
+    <div x-show="open" @click.outside="open = false">
+        Contents...
+    </div>
+</div>
+\`\`\`
+
+In the above example, after showing the dropdown contents by clicking the "Toggle" button, you can close the dropdown by clicking anywhere on the page outside the content.
+
+This is because \`.outside\` is listening for clicks that DON'T originate from the element it's registered on.
+
+> It's worth noting that the \`.outside\` expression will only be evaluated when the element it's registered on is visible on the page. Otherwise, there would be nasty race conditions where clicking the "Toggle" button would also fire the \`@click.outside\` handler when it is not visible.
+
+#### .window
+
+When the \`.window\` modifier is present, Alpine will register the event listener on the root \`window\` object on the page instead of the element itself.
+
+\`\`\`alpine
+<div @keyup.escape.window="...">...</div>
+\`\`\`
+
+The above snippet will listen for the "escape" key to be pressed ANYWHERE on the page.
+
+Adding \`.window\` to listeners is extremely useful for these sorts of cases where a small part of your markup is concerned with events that take place on the entire page.
+
+#### .document
+
+\`.document\` works similarly to \`.window\` only it registers listeners on the \`document\` global, instead of the \`window\` global.
+
+#### .once
+
+By adding \`.once\` to a listener, you are ensuring that the handler is only called ONCE.
+
+\`\`\`alpine
+<button @click.once="console.log('I will only log once')">...</button>
+\`\`\`
+
+#### .debounce
+
+Sometimes it is useful to "debounce" an event handler so that it only is called after a certain period of inactivity (250 milliseconds by default).
+
+For example if you have a search field that fires network requests as the user types into it, adding a debounce will prevent the network requests from firing on every single keystroke.
+
+\`\`\`alpine
+<input @input.debounce="fetchResults">
+\`\`\`
+
+Now, instead of calling \`fetchResults\` after every keystroke, \`fetchResults\` will only be called after 250 milliseconds of no keystrokes.
+
+If you wish to lengthen or shorten the debounce time, you can do so by trailing a duration after the \`.debounce\` modifier like so:
+
+\`\`\`alpine
+<input @input.debounce.500ms="fetchResults">
+\`\`\`
+
+Now, \`fetchResults\` will only be called after 500 milliseconds of inactivity.
+
+#### .throttle
+
+\`.throttle\` is similar to \`.debounce\` except it will release a handler call every 250 milliseconds instead of deferring it indefinitely.
+
+This is useful for cases where there may be repeated and prolonged event firing and using \`.debounce\` won't work because you want to still handle the event every so often.
+
+For example:
+
+\`\`\`alpine
+<div @scroll.window.throttle="handleScroll">...</div>
+\`\`\`
+
+The above example is a great use case of throttling. Without \`.throttle\`, the \`handleScroll\` method would be fired hundreds of times as the user scrolls down a page. This can really slow down a site. By adding \`.throttle\`, we are ensuring that \`handleScroll\` only gets called every 250 milliseconds.
+
+> Fun Fact: This exact strategy is used on this very documentation site to update the currently highlighted section in the right sidebar.
+
+Just like with \`.debounce\`, you can add a custom duration to your throttled event:
+
+\`\`\`alpine
+<div @scroll.window.throttle.750ms="handleScroll">...</div>
+\`\`\`
+
+Now, \`handleScroll\` will only be called every 750 milliseconds.
+
+#### .self
+
+By adding \`.self\` to an event listener, you are ensuring that the event originated on the element it is declared on, and not from a child element.
+
+\`\`\`alpine
+<button @click.self="handleClick">
+    Click Me
+
+    <img src="...">
+</button>
+\`\`\`
+
+In the above example, we have an \`<img>\` tag inside the \`<button>\` tag. Normally, any click originating within the \`<button>\` element (like on \`<img>\` for example), would be picked up by a \`@click\` listener on the button.
+
+However, in this case, because we've added a \`.self\`, only clicking the button itself will call \`handleClick\`. Only clicks originating on the \`<img>\` element will not be handled.
+
+#### .camel
+
+\`\`\`alpine
+<div @custom-event.camel="handleCustomEvent">
+    ...
+</div>
+\`\`\`
+
+Sometimes you may want to listen for camelCased events such as \`customEvent\` in our example. Because camelCasing inside HTML attributes is not supported, adding the \`.camel\` modifier is necessary for Alpine to camelCase the event name internally.
+
+By adding \`.camel\` in the above example, Alpine is now listening for \`customEvent\` instead of \`custom-event\`.
+
+#### .dot
+
+\`\`\`alpine
+<div @custom-event.dot="handleCustomEvent">
+    ...
+</div>
+\`\`\`
+
+Similar to the \`.camelCase\` modifier there may be situations where you want to listen for events that have dots in their name (like \`custom.event\`). Since dots within the event name are reserved by Alpine you need to write them with dashes and add the \`.dot\` modifier.
+
+In the code example above \`custom-event.dot\` will correspond to the event name \`custom.event\`.
+
+#### .passive
+
+Browsers optimize scrolling on pages to be fast and smooth even when JavaScript is being executed on the page. However, improperly implemented touch and wheel listeners can block this optimization and cause poor site performance.
+
+If you are listening for touch events, it's important to add \`.passive\` to your listeners to not block scroll performance.
+
+\`\`\`alpine
+<div @touchstart.passive="...">...</div>
+\`\`\`
+
+[→ Read more about passive listeners](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#improving_scrolling_performance_with_passive_listeners)
+
+#### .passive.false
+
+In modern browsers, touch and wheel event listeners are passive by default. Pass \`.passive.false\` to make these events cancelable, so that you can call \`preventDefault\` on them.
+
+\`\`\`alpine
+<div @touchmove.passive.false="$event.preventDefault()">...</div>
+\`\`\`
+
+#### .capture
+
+Add this modifier if you want to execute this listener in the event's capturing phase, e.g. before the event bubbles from the target element up the DOM.
+
+\`\`\`alpine
+<div @click.capture="console.log('I will log first')">
+    <button @click="console.log('I will log second')"></button>
+</div>
+\`\`\`
+
+[→ Read more about the capturing and bubbling phase of events](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#usecapture)
+
+---
+
+## x-text
+
+\`x-text\` sets the text content of an element to the result of a given expression.
+
+Here's a basic example of using \`x-text\` to display a user's username.
+
+\`\`\`alpine
+<div x-data="{ username: 'calebporzio' }">
+    Username: <strong x-text="username"></strong>
+</div>
+\`\`\`
+
+Now the \`<strong>\` tag's inner text content will be set to "calebporzio".
+
+---
+
+## x-html
+
+\`x-html\` sets the "innerHTML" property of an element to the result of a given expression.
+
+> ⚠️ Only use on trusted content and never on user-provided content. ⚠️
+> Dynamically rendering HTML from third parties can easily lead to XSS vulnerabilities.
+
+Here's a basic example of using \`x-html\` to display a user's username.
+
+\`\`\`alpine
+<div x-data="{ username: '<strong>calebporzio</strong>' }">
+    Username: <span x-html="username"></span>
+</div>
+\`\`\`
+
+Now the \`<span>\` tag's inner HTML will be set to "<strong>calebporzio</strong>".
+
+---
+
+## x-model
+
+\`x-model\` allows you to bind the value of an input element to Alpine data.
+
+Here's a simple example of using \`x-model\` to bind the value of a text field to a piece of data in Alpine.
+
+\`\`\`alpine
+<div x-data="{ message: '' }">
+    <input type="text" x-model="message">
+
+    <span x-text="message"></span>
+</div>
+\`\`\`
+
+Now as the user types into the text field, the \`message\` will be reflected in the \`<span>\` tag.
+
+\`x-model\` is two-way bound, meaning it both "sets" and "gets". In addition to changing data, if the data itself changes, the element will reflect the change.
+
+We can use the same example as above but this time, we'll add a button to change the value of the \`message\` property.
+
+\`\`\`alpine
+<div x-data="{ message: '' }">
+    <input type="text" x-model="message">
+
+    <button x-on:click="message = 'changed'">Change Message</button>
+</div>
+\`\`\`
+
+Now when the \`<button>\` is clicked, the input element's value will instantly be updated to "changed".
+
+\`x-model\` works with the following input elements:
+
+* \`<input type="text">\`
+* \`<textarea>\`
+* \`<input type="checkbox">\`
+* \`<input type="radio">\`
+* \`<select>\`
+* \`<input type="range">\`
+
+### Text inputs
+
+\`\`\`alpine
+<input type="text" x-model="message">
+
+<span x-text="message"></span>
+\`\`\`
+
+> Despite not being included in the above snippet, \`x-model\` cannot be used if no parent element has \`x-data\` defined. [→ Read more about \`x-data\`](/directives/data)
+
+### Textarea inputs
+
+\`\`\`alpine
+<textarea x-model="message"></textarea>
+
+<span x-text="message"></span>
+\`\`\`
+
+### Checkbox inputs
+
+#### Single checkbox with boolean
+
+\`\`\`alpine
+<input type="checkbox" id="checkbox" x-model="show">
+
+<label for="checkbox" x-text="show"></label>
+\`\`\`
+
+#### Multiple checkboxes bound to array
+
+\`\`\`alpine
+<input type="checkbox" value="red" x-model="colors">
+<input type="checkbox" value="orange" x-model="colors">
+<input type="checkbox" value="yellow" x-model="colors">
+
+Colors: <span x-text="colors"></span>
+\`\`\`
+
+### Radio inputs
+
+\`\`\`alpine
+<input type="radio" value="yes" x-model="answer">
+<input type="radio" value="no" x-model="answer">
+
+Answer: <span x-text="answer"></span>
+\`\`\`
+
+### Select inputs
+
+#### Single select
+
+\`\`\`alpine
+<select x-model="color">
+    <option>Red</option>
+    <option>Orange</option>
+    <option>Yellow</option>
+</select>
+
+Color: <span x-text="color"></span>
+\`\`\`
+
+#### Single select with placeholder
+
+\`\`\`alpine
+<select x-model="color">
+    <option value="" disabled>Select A Color</option>
+    <option>Red</option>
+    <option>Orange</option>
+    <option>Yellow</option>
+</select>
+
+Color: <span x-text="color"></span>
+\`\`\`
+
+#### Multiple select
+
+\`\`\`alpine
+<select x-model="color" multiple>
+    <option>Red</option>
+    <option>Orange</option>
+    <option>Yellow</option>
+</select>
+
+Colors: <span x-text="color"></span>
+\`\`\`
+
+#### Dynamically populated Select Options
+
+\`\`\`alpine
+<select x-model="color">
+    <template x-for="color in ['Red', 'Orange', 'Yellow']">
+        <option x-text="color"></option>
+    </template>
+</select>
+
+Color: <span x-text="color"></span>
+\`\`\`
+
+### Range inputs
+
+\`\`\`alpine
+<input type="range" x-model="range" min="0" max="1" step="0.1">
+
+<span x-text="range"></span>
+\`\`\`
+
+### Modifiers
+
+#### \`.lazy\`
+
+On text inputs, by default, \`x-model\` updates the property on every keystroke. By adding the \`.lazy\` modifier, you can force an \`x-model\` input to only update the property when user focuses away from the input element.
+
+This is handy for things like real-time form-validation where you might not want to show an input validation error until the user "tabs" away from a field.
+
+\`\`\`alpine
+<input type="text" x-model.lazy="username">
+<span x-show="username.length > 20">The username is too long.</span>
+\`\`\`
+
+#### \`.change\`
+
+\`.change\` syncs the data only when the input loses focus and its value has changed (the native \`change\` event). This is functionally equivalent to \`.lazy\`.
+
+\`\`\`alpine
+<input type="text" x-model.change="username">
+\`\`\`
+
+#### \`.blur\`
+
+\`.blur\` syncs the data when the input loses focus, regardless of whether the value has changed.
+
+\`\`\`alpine
+<input type="text" x-model.blur="email">
+\`\`\`
+
+#### \`.enter\`
+
+\`.enter\` syncs the data when the user presses the Enter key. This is useful for search fields where you want to trigger an action only when the user explicitly submits.
+
+\`\`\`alpine
+<input type="text" x-model.enter="search">
+\`\`\`
+
+> Note: \`.enter\` does not prevent the default behavior. If the input is inside a form, the form will still submit.
+
+#### Combining Event Modifiers
+
+The \`.change\`, \`.blur\`, and \`.enter\` modifiers can be combined to sync on multiple events. This is useful when you want to give users flexibility in how they submit data.
+
+\`\`\`alpine
+<!-- Sync on blur OR enter -->
+<input type="text" x-model.blur.enter="search" placeholder="Press Enter or click away">
+
+<!-- Sync on change, blur, OR enter -->
+<input type="text" x-model.change.blur.enter="message">
+\`\`\`
+
+#### \`.number\`
+
+By default, any data stored in a property via \`x-model\` is stored as a string. To force Alpine to store the value as a JavaScript number, add the \`.number\` modifier.
+
+\`\`\`alpine
+<input type="text" x-model.number="age">
+<span x-text="typeof age"></span>
+\`\`\`
+
+#### \`.boolean\`
+
+By default, any data stored in a property via \`x-model\` is stored as a string. To force Alpine to store the value as a JavaScript boolean, add the \`.boolean\` modifier. Both integers (1/0) and strings (true/false) are valid boolean values.
+
+\`\`\`alpine
+<select x-model.boolean="isActive">
+    <option value="true">Yes</option>
+    <option value="false">No</option>
+</select>
+<span x-text="typeof isActive"></span>
+\`\`\`
+
+#### \`.debounce\`
+
+By adding \`.debounce\` to \`x-model\`, you can easily debounce the updating of bound input.
+
+This is useful for things like real-time search inputs that fetch new data from the server every time the search property changes.
+
+\`\`\`alpine
+<input type="text" x-model.debounce="search">
+\`\`\`
+
+The default debounce time is 250 milliseconds, you can easily customize this by adding a time modifier like so.
+
+\`\`\`alpine
+<input type="text" x-model.debounce.500ms="search">
+\`\`\`
+
+#### \`.throttle\`
+
+Similar to \`.debounce\` you can limit the property update triggered by \`x-model\` to only updating on a specified interval.
+
+\`\`\`alpine
+<input type="text" x-model.throttle="search">
+\`\`\`
+
+The default throttle interval is 250 milliseconds, you can easily customize this by adding a time modifier like so.
+
+\`\`\`alpine
+<input type="text" x-model.throttle.500ms="search">
+\`\`\`
+
+#### \`.fill\`
+
+By default, if an input has a value attribute, it is ignored by Alpine and instead, the value of the input is set to the value of the property bound using \`x-model\`.
+
+But if a bound property is empty, then you can use an input's value attribute to populate the property by adding the \`.fill\` modifier.
+
+\`\`\`alpine
+<div x-data="{ message: null }">
+  <input type="text" x-model.fill="message" value="This is the default message.">
+</div>
+\`\`\`
+
+### Programmatic access
+
+Alpine exposes under-the-hood utilities for getting and setting properties bound with \`x-model\`. This is useful for complex Alpine utilities that may want to override the default x-model behavior, or instances where you want to allow \`x-model\` on a non-input element.
+
+You can access these utilities through a property called \`_x_model\` on the \`x-model\`ed element. \`_x_model\` has two methods to get and set the bound property:
+
+* \`el._x_model.get()\` (returns the value of the bound property)
+* \`el._x_model.set()\` (sets the value of the bound property)
+
+\`\`\`alpine
+<div x-data="{ username: 'calebporzio' }">
+    <div x-ref="div" x-model="username"></div>
+
+    <button @click="$refs.div._x_model.set('phantomatrix')">
+        Change username to: 'phantomatrix'
+    </button>
+
+    <span x-text="$refs.div._x_model.get()"></span>
+</div>
+\`\`\`
+
+---
+
+## x-modelable
+
+\`x-modelable\` allows you to expose any Alpine property as the target of the \`x-model\` directive.
+
+Here's a simple example of using \`x-modelable\` to expose a variable for binding with \`x-model\`.
+
+\`\`\`alpine
+<div x-data="{ number: 5 }">
+    <div x-data="{ count: 0 }" x-modelable="count" x-model="number">
+        <button @click="count++">Increment</button>
+    </div>
+
+    Number: <span x-text="number"></span>
+</div>
+\`\`\`
+
+As you can see the outer scope property "number" is now bound to the inner scope property "count".
+
+Typically this feature would be used in conjunction with a backend templating framework like Laravel Blade. It's useful for abstracting away Alpine components into backend templates and exposing state to the outside through \`x-model\` as if it were a native input.
+
+---
+
+## x-for
+
+Alpine's \`x-for\` directive allows you to create DOM elements by iterating through a list. Here's a simple example of using it to create a list of colors based on an array.
+
+\`\`\`alpine
+<ul x-data="{ colors: ['Red', 'Orange', 'Yellow'] }">
+    <template x-for="color in colors">
+        <li x-text="color"></li>
+    </template>
+</ul>
+\`\`\`
+
+You may also pass objects to \`x-for\`.
+
+\`\`\`alpine
+<ul x-data="{ car: { make: 'Jeep', model: 'Grand Cherokee', color: 'Black' } }">
+    <template x-for="(value, index) in car">
+        <li>
+            <span x-text="index"></span>: <span x-text="value"></span>
+        </li>
+    </template>
+</ul>
+\`\`\`
+
+There are two rules worth noting about \`x-for\`:
+
+> \`x-for\` MUST be declared on a \`<template>\` element.
+> That \`<template>\` element MUST contain only one root element
+
+### Keys
+
+It is important to specify unique keys for each \`x-for\` iteration if you are going to be re-ordering items. Without dynamic keys, Alpine may have a hard time keeping track of what re-orders and will cause odd side-effects.
+
+\`\`\`alpine
+<ul x-data="{ colors: [
+    { id: 1, label: 'Red' },
+    { id: 2, label: 'Orange' },
+    { id: 3, label: 'Yellow' },
+]}">
+    <template x-for="color in colors" :key="color.id">
+        <li x-text="color.label"></li>
+    </template>
+</ul>
+\`\`\`
+
+Now if the colors are added, removed, re-ordered, or their "id"s change, Alpine will preserve or destroy the iterated \`<li>\`elements accordingly.
+
+### Accessing indexes
+
+If you need to access the index of each item in the iteration, you can do so using the \`([item], [index]) in [items]\` syntax like so:
+
+\`\`\`alpine
+<ul x-data="{ colors: ['Red', 'Orange', 'Yellow'] }">
+    <template x-for="(color, index) in colors">
+        <li>
+            <span x-text="index + ': '"></span>
+            <span x-text="color"></span>
+        </li>
+    </template>
+</ul>
+\`\`\`
+
+You can also access the index inside a dynamic \`:key\` expression.
+
+\`\`\`alpine
+<template x-for="(color, index) in colors" :key="index">
+\`\`\`
+
+### Iterating over a range
+
+If you need to simply loop \`n\` number of times, rather than iterate through an array, Alpine offers a short syntax.
+
+\`\`\`alpine
+<ul>
+    <template x-for="i in 10">
+        <li x-text="i"></li>
+    </template>
+</ul>
+\`\`\`
+
+\`i\` in this case can be named anything you like.
+
+> Despite not being included in the above snippet, \`x-for\` cannot be used if no parent element has \`x-data\` defined. [→ Read more about \`x-data\`](/directives/data)
+
+### Contents of a \`<template>\`
+
+As mentioned above, an \`<template>\` tag must contain only one root element.
+
+For example, the following code will not work:
+
+\`\`\`alpine
+<template x-for="color in colors">
+    <span>The next color is </span><span x-text="color">
+</template>
+\`\`\`
+
+but this code will work:
+
+\`\`\`alpine
+<template x-for="color in colors">
+    <p>
+        <span>The next color is </span><span x-text="color">
+    </p>
+</template>
+\`\`\`
+
+---
+
+## x-transition
+
+Alpine provides a robust transitions utility out of the box. With a few \`x-transition\` directives, you can create smooth transitions between when an element is shown or hidden.
+
+There are two primary ways to handle transitions in Alpine:
+
+* [The Transition Helper](#the-transition-helper)
+* [Applying CSS Classes](#applying-css-classes)
+
+### The transition helper
+
+The simplest way to achieve a transition using Alpine is by adding \`x-transition\` to an element with \`x-show\` on it. For example:
+
+\`\`\`alpine
+<div x-data="{ open: false }">
+    <button @click="open = ! open">Toggle</button>
+
+    <div x-show="open" x-transition>
+        Hello 👋
+    </div>
+</div>
+\`\`\`
+
+As you can see, by default, \`x-transition\` applies pleasant transition defaults to fade and scale the revealing element.
+
+You can override these defaults with modifiers attached to \`x-transition\`. Let's take a look at those.
+
+#### Customizing duration
+
+Initially, the duration is set to be 150 milliseconds when entering, and 75 milliseconds when leaving.
+
+You can configure the duration you want for a transition with the \`.duration\` modifier:
+
+\`\`\`alpine
+<div ... x-transition.duration.500ms>
+\`\`\`
+
+The above \`<div>\` will transition for 500 milliseconds when entering, and 500 milliseconds when leaving.
+
+If you wish to customize the durations specifically for entering and leaving, you can do that like so:
+
+\`\`\`alpine
+<div ...
+    x-transition:enter.duration.500ms
+    x-transition:leave.duration.400ms
+>
+\`\`\`
+
+> Despite not being included in the above snippet, \`x-transition\` cannot be used if no parent element has \`x-data\` defined. [→ Read more about \`x-data\`](/directives/data)
+
+#### Customizing delay
+
+You can delay a transition using the \`.delay\` modifier like so:
+
+\`\`\`alpine
+<div ... x-transition.delay.50ms>
+\`\`\`
+
+The above example will delay the transition and in and out of the element by 50 milliseconds.
+
+#### Customizing opacity
+
+By default, Alpine's \`x-transition\` applies both a scale and opacity transition to achieve a "fade" effect.
+
+If you wish to only apply the opacity transition (no scale), you can accomplish that like so:
+
+\`\`\`alpine
+<div ... x-transition.opacity>
+\`\`\`
+
+#### Customizing scale
+
+Similar to the \`.opacity\` modifier, you can configure \`x-transition\` to ONLY scale (and not transition opacity as well) like so:
+
+\`\`\`alpine
+<div ... x-transition.scale>
+\`\`\`
+
+The \`.scale\` modifier also offers the ability to configure its scale values AND its origin values:
+
+\`\`\`alpine
+<div ... x-transition.scale.80>
+\`\`\`
+
+The above snippet will scale the element up and down by 80%.
+
+Again, you may customize these values separately for enter and leaving transitions like so:
+
+\`\`\`alpine
+<div ...
+    x-transition:enter.scale.80
+    x-transition:leave.scale.90
+>
+\`\`\`
+
+To customize the origin of the scale transition, you can use the \`.origin\` modifier:
+
+\`\`\`alpine
+<div ... x-transition.scale.origin.top>
+\`\`\`
+
+Now the scale will be applied using the top of the element as the origin, instead of the center by default.
+
+Like you may have guessed, the possible values for this customization are: \`top\`, \`bottom\`, \`left\`, and \`right\`.
+
+If you wish, you can also combine two origin values. For example, if you want the origin of the scale to be "top right", you can use: \`.origin.top.right\` as the modifier.
+
+### Applying CSS classes
+
+For direct control over exactly what goes into your transitions, you can apply CSS classes at different stages of the transition.
+
+> The following examples use [TailwindCSS](https://tailwindcss.com/docs/transition-property) utility classes.
+
+\`\`\`alpine
+<div x-data="{ open: false }">
+    <button @click="open = ! open">Toggle</button>
+
+    <div
+        x-show="open"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 scale-90"
+        x-transition:enter-end="opacity-100 scale-100"
+        x-transition:leave="transition ease-in duration-300"
+        x-transition:leave-start="opacity-100 scale-100"
+        x-transition:leave-end="opacity-0 scale-90"
+    >Hello 👋</div>
+</div>
+\`\`\`
+
+| Directive      | Description |
+| ---            | --- |
+| \`:enter\`       | Applied during the entire entering phase. |
+| \`:enter-start\` | Added before element is inserted, removed one frame after element is inserted. |
+| \`:enter-end\`   | Added one frame after element is inserted (at the same time \`enter-start\` is removed), removed when transition/animation finishes. |
+| \`:leave\`       | Applied during the entire leaving phase. |
+| \`:leave-start\` | Added immediately when a leaving transition is triggered, removed after one frame. |
+| \`:leave-end\`   | Added one frame after a leaving transition is triggered (at the same time \`leave-start\` is removed), removed when the transition/animation finishes. |
+
+---
+
+## x-effect
+
+\`x-effect\` is a useful directive for re-evaluating an expression when one of its dependencies change. You can think of it as a watcher where you don't have to specify what property to watch, it will watch all properties used within it.
+
+If this definition is confusing for you, that's ok. It's better explained through an example:
+
+\`\`\`alpine
+<div x-data="{ label: 'Hello' }" x-effect="console.log(label)">
+    <button @click="label += ' World!'">Change Message</button>
+</div>
+\`\`\`
+
+When this component is loaded, the \`x-effect\` expression will be run and "Hello" will be logged into the console.
+
+Because Alpine knows about any property references contained within \`x-effect\`, when the button is clicked and \`label\` is changed, the effect will be re-triggered and "Hello World!" will be logged to the console.
+
+---
+
+## x-ignore
+
+By default, Alpine will crawl and initialize the entire DOM tree of an element containing \`x-init\` or \`x-data\`.
+
+If for some reason, you don't want Alpine to touch a specific section of your HTML, you can prevent it from doing so using \`x-ignore\`.
+
+\`\`\`alpine
+<div x-data="{ label: 'From Alpine' }">
+    <div x-ignore>
+        <span x-text="label"></span>
+    </div>
+</div>
+\`\`\`
+
+In the above example, the \`<span>\` tag will not contain "From Alpine" because we told Alpine to ignore the contents of the \`div\` completely.
+
+---
+
+## x-ref
+
+\`x-ref\` in combination with \`$refs\` is a useful utility for easily accessing DOM elements directly. It's most useful as a replacement for APIs like \`getElementById\` and \`querySelector\`.
+
+\`\`\`alpine
+<button @click="$refs.text.remove()">Remove Text</button>
+
+<span x-ref="text">Hello 👋</span>
+\`\`\`
+
+> Despite not being included in the above snippet, \`x-ref\` cannot be used if no parent element has \`x-data\` defined. [→ Read more about \`x-data\`](/directives/data)
+
+---
+
+## x-cloak
+
+Sometimes, when you're using AlpineJS for a part of your template, there is a "blip" where you might see your uninitialized template after the page loads, but before Alpine loads.
+
+\`x-cloak\` addresses this scenario by hiding the element it's attached to until Alpine is fully loaded on the page.
+
+For \`x-cloak\` to work however, you must add the following CSS to the page.
+
+\`\`\`css
+[x-cloak] { display: none !important; }
+\`\`\`
+
+The following example will hide the \`<span>\` tag until its \`x-show\` is specifically set to true, preventing any "blip" of the hidden element onto screen as Alpine loads.
+
+\`\`\`alpine
+<span x-cloak x-show="false">This will not 'blip' onto screen at any point</span>
+\`\`\`
+
+\`x-cloak\` doesn't just work on elements hidden by \`x-show\` or \`x-if\`: it also ensures that elements containing data are hidden until the data is correctly set. The following example will hide the \`<span>\` tag until Alpine has set its text content to the \`message\` property.
+
+\`\`\`alpine
+<span x-cloak x-text="message"></span>
+\`\`\`
+
+When Alpine loads on the page, it removes all \`x-cloak\` property from the element, which also removes the \`display: none;\` applied by CSS, therefore showing the element.
+
+### Alternative to global syntax
+
+If you'd like to achieve this same behavior, but avoid having to include a global style, you can use the following cool, but admittedly odd trick:
+
+\`\`\`alpine
+<template x-if="true">
+    <span x-text="message"></span>
+</template>
+\`\`\`
+
+This will achieve the same goal as \`x-cloak\` by just leveraging the way \`x-if\` works.
+
+Because \`<template>\` elements are "hidden" in browsers by default, you won't see the \`<span>\` until Alpine has had a chance to render the \`x-if="true"\` and show it.
+
+Again, this solution is not for everyone, but it's worth mentioning for special cases.
+
+---
+
+## x-teleport
+
+The \`x-teleport\` directive allows you to transport part of your Alpine template to another part of the DOM on the page entirely.
+
+This is useful for things like modals (especially nesting them), where it's helpful to break out of the z-index of the current Alpine component.
+
+### x-teleport
+
+By attaching \`x-teleport\` to a \`<template>\` element, you are telling Alpine to "append" that element to the provided selector.
+
+> The \`x-teleport\` selector can be any string you would normally pass into something like \`document.querySelector\`. It will find the first element that matches, be it a tag name (\`body\`), class name (\`.my-class\`), ID (\`#my-id\`), or any other valid CSS selector.
+
+[→ Read more about \`document.querySelector\`](https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector)
+
+Here's a contrived modal example:
+
+\`\`\`alpine
+<body>
+    <div x-data="{ open: false }">
+        <button @click="open = ! open">Toggle Modal</button>
+
+        <template x-teleport="body">
+            <div x-show="open">
+                Modal contents...
+            </div>
+        </template>
+    </div>
+
+    <div>Some other content placed AFTER the modal markup.</div>
+
+    ...
+
+</body>
+\`\`\`
+
+Notice how when toggling the modal, the actual modal contents show up AFTER the "Some other content..." element? This is because when Alpine is initializing, it sees \`x-teleport="body"\` and appends and initializes that element to the provided element selector.
+
+### Forwarding events
+
+Alpine tries its best to make the experience of teleporting seamless. Anything you would normally do in a template, you should be able to do inside an \`x-teleport\` template. Teleported content can access the normal Alpine scope of the component as well as other features like \`$refs\`, \`$root\`, etc...
+
+However, native DOM events have no concept of teleportation, so if, for example, you trigger a "click" event from inside a teleported element, that event will bubble up the DOM tree as it normally would.
+
+To make this experience more seamless, you can "forward" events by simply registering event listeners on the \`<template x-teleport...>\` element itself like so:
+
+\`\`\`alpine
+<div x-data="{ open: false }">
+    <button @click="open = ! open">Toggle Modal</button>
+
+    <template x-teleport="body" @click="open = false">
+        <div x-show="open">
+            Modal contents...
+            (click to close)
+        </div>
+    </template>
+</div>
+\`\`\`
+
+Notice how we are now able to listen for events dispatched from within the teleported element from outside the \`<template>\` element itself?
+
+Alpine does this by looking for event listeners registered on \`<template x-teleport...>\` and stops those events from propagating past the live, teleported, DOM element. Then, it creates a copy of that event and re-dispatches it from \`<template x-teleport...>\`.
+
+### Nesting
+
+Teleporting is especially helpful if you are trying to nest one modal within another. Alpine makes it simple to do so:
+
+\`\`\`alpine
+<div x-data="{ open: false }">
+    <button @click="open = ! open">Toggle Modal</button>
+
+    <template x-teleport="body">
+        <div x-show="open">
+            Modal contents...
+
+            <div x-data="{ open: false }">
+                <button @click="open = ! open">Toggle Nested Modal</button>
+
+                <template x-teleport="body">
+                    <div x-show="open">
+                        Nested modal contents...
+                    </div>
+                </template>
+            </div>
+        </div>
+    </template>
+</div>
+\`\`\`
+
+After toggling "on" both modals, they are authored as children, but will be rendered as sibling elements on the page, not within one another.
+
+---
+
+## x-if
+
+\`x-if\` is used for toggling elements on the page, similarly to \`x-show\`, however it completely adds and removes the element it's applied to rather than just changing its CSS display property to "none".
+
+Because of this difference in behavior, \`x-if\` should not be applied directly to the element, but instead to a \`<template>\` tag that encloses the element. This way, Alpine can keep a record of the element once it's removed from the page.
+
+\`\`\`alpine
+<template x-if="open">
+    <div>Contents...</div>
+</template>
+\`\`\`
+
+> Despite not being included in the above snippet, \`x-if\` cannot be used if no parent element has \`x-data\` defined. [→ Read more about \`x-data\`](/directives/data)
+
+### Caveats
+
+Unlike \`x-show\`, \`x-if\`, does NOT support transitioning toggles with \`x-transition\`.
+
+\`<template>\` tags can only contain one root element.
+
+---
+
+## x-id
+
+\`x-id\` allows you to declare a new "scope" for any new IDs generated using \`$id()\`. It accepts an array of strings (ID names) and adds a suffix to each \`$id('...')\` generated within it that is unique to other IDs on the page.
+
+\`x-id\` is meant to be used in conjunction with the \`$id(...)\` magic.
+
+[Visit the $id documentation](/magics/id) for a better understanding of this feature.
+
+Here's a brief example of this directive in use:
+
+\`\`\`alpine
+<div x-id="['text-input']">
+    <label :for="$id('text-input')">Username</label>
+    <!-- for="text-input-1" -->
+
+    <input type="text" :id="$id('text-input')">
+    <!-- id="text-input-1" -->
+</div>
+
+<div x-id="['text-input']">
+    <label :for="$id('text-input')">Username</label>
+    <!-- for="text-input-2" -->
+
+    <input type="text" :id="$id('text-input')">
+    <!-- id="text-input-2" -->
+</div>
+\`\`\`
+
+> Despite not being included in the above snippet, \`x-id\` cannot be used if no parent element has \`x-data\` defined. [→ Read more about \`x-data\`](/directives/data)
+`;
