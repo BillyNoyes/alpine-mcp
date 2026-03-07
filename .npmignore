@@ -1,0 +1,5 @@
+src/
+scripts/
+.github/
+tsconfig.json
+vite.config.ts

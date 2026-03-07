@@ -4,7 +4,7 @@
   "description": "MCP server providing Alpine.js documentation and reference",
   "type": "module",
   "bin": {
-    "alpine-mcp": "./build/index.js"
+    "alpine-mcp": "build/index.js"
   },
   "scripts": {
     "generate": "node --import tsx/esm scripts/generate.ts",
