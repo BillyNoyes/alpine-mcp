@@ -1,6 +1,6 @@
 {
   "name": "alpine-mcp",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "MCP server providing Alpine.js documentation and reference",
   "repository": {
     "type": "git",
