@@ -904,6 +904,22 @@ You can add an offset to your anchored element using the \`.offset.[px value]\` 
 </div>
 \`\`\`
 
+## Prevent flipping position
+
+By default, \`x-anchor\` will flip the position of the anchored element if it doesn't have enough room to render below the reference element.
+
+You can prevent this behavior by adding the \`.noflip\` modifier:
+
+\`\`\`alpine
+<div x-data="{ open: false }">
+    <button x-ref="button" @click="open = ! open">Toggle</button>
+
+    <div x-show="open" x-anchor.noflip="$refs.button">
+        Dropdown content
+    </div>
+</div>
+\`\`\`
+
 ## Manual styling
 
 By default, \`x-anchor\` applies the positioning styles to your element under the hood. If you'd prefer full control over styling, you can pass the \`.no-style\` modifer and use the \`$anchor\` magic to access the values inside another Alpine expression.
