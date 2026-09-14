@@ -1,0 +1,179 @@
+# Anchor Plugin
+
+Alpine's Anchor plugin allows you to easily anchor an element's positioning to another element on the page.
+
+This functionality is useful when creating dropdown menus, popovers, dialogs, and tooltips with Alpine.
+
+The "anchoring" functionality used in this plugin is provided by the [Floating UI](https://floating-ui.com/) project.
+
+## Installation
+
+You can use this plugin by either including it from a `<script>` tag or installing it via NPM:
+
+### Via CDN
+
+You can include the CDN build of this plugin as a `<script>` tag, just make sure to include it BEFORE Alpine's core JS file.
+
+```alpine
+<!-- Alpine Plugins -->
+<script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/anchor@3.x.x/dist/cdn.min.js"></script>
+
+<!-- Alpine Core -->
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+```
+
+### Via NPM
+
+You can install Anchor from NPM for use inside your bundle like so:
+
+```shell
+npm install @alpinejs/anchor
+```
+
+Then initialize it from your bundle:
+
+```js
+import Alpine from 'alpinejs'
+import anchor from '@alpinejs/anchor'
+
+Alpine.plugin(anchor)
+
+...
+```
+
+## x-anchor
+
+The primary API for using this plugin is the `x-anchor` directive.
+
+To use this plugin, add the `x-anchor` directive to any element and pass it a reference to the element you want to anchor it's position to (often a button on the page).
+
+By default, `x-anchor` will set the element's CSS to `position: absolute` and the appropriate `top` and `left` values. If the anchored element is normally displayed below the reference element but doesn't have room on the page, it's styling will be adjusted to render above the element.
+
+For example, here's a simple dropdown anchored to the button that toggles it:
+
+```alpine
+<div x-data="{ open: false }">
+    <button x-ref="button" @click="open = ! open">Toggle</button>
+
+    <div x-show="open" x-anchor="$refs.button">
+        Dropdown content
+    </div>
+</div>
+```
+
+## Positioning
+
+`x-anchor` allows you to customize the positioning of the anchored element using the following modifiers:
+
+* Bottom: `.bottom`, `.bottom-start`, `.bottom-end`
+* Top: `.top`, `.top-start`, `.top-end`
+* Left: `.left`, `.left-start`, `.left-end`
+* Right: `.right`, `.right-start`, `.right-end`
+
+Here is an example of using `.bottom-start` to position a dropdown below and to the right of the reference element:
+
+```alpine
+<div x-data="{ open: false }">
+    <button x-ref="button" @click="open = ! open">Toggle</button>
+
+    <div x-show="open" x-anchor.bottom-start="$refs.button">
+        Dropdown content
+    </div>
+</div>
+```
+
+### Fixed positioning
+
+By default, `x-anchor` applies `position: absolute` to the anchored element. This is fine for most cases, but it falls apart when the reference element lives inside a container with `overflow: hidden`, `overflow: clip`, or `overflow: auto`—the anchored element is clipped along with it.
+
+You can instruct Floating UI to use a fixed positioning strategy instead by adding the `.fixed` modifier:
+
+```html
+<div x-data="{ open: false }">
+    <button x-ref="button" @click="open = ! open">Toggle</button>
+
+    <div x-show="open" x-anchor.fixed="$refs.button">
+        Dropdown content
+    </div>
+</div>
+```
+
+> **Heads up:** a `transform`, `filter`, `perspective`, `backdrop-filter`, `will-change`, or `contain` on any ancestor element creates a new containing block for `position: fixed` descendants ([per the CSS spec](https://developer.mozilla.org/en-US/docs/Web/CSS/position#fixed_positioning)). When that happens, `.fixed` will behave like `position: absolute` relative to that ancestor—and won't escape its `overflow: hidden`. If `.fixed` seems to be doing nothing, check for a transformed ancestor.
+
+## Offset
+
+You can add an offset to your anchored element using the `.offset.[px value]` modifier like so:
+
+```alpine
+<div x-data="{ open: false }">
+    <button x-ref="button" @click="open = ! open">Toggle</button>
+
+    <div x-show="open" x-anchor.offset.10="$refs.button">
+        Dropdown content
+    </div>
+</div>
+```
+
+## Prevent flipping position
+
+By default, `x-anchor` will flip the position of the anchored element if it doesn't have enough room to render below the reference element.
+
+You can prevent this behavior by adding the `.noflip` modifier:
+
+```alpine
+<div x-data="{ open: false }">
+    <button x-ref="button" @click="open = ! open">Toggle</button>
+
+    <div x-show="open" x-anchor.noflip="$refs.button">
+        Dropdown content
+    </div>
+</div>
+```
+
+## Manual styling
+
+By default, `x-anchor` applies the positioning styles to your element under the hood. If you'd prefer full control over styling, you can pass the `.no-style` modifer and use the `$anchor` magic to access the values inside another Alpine expression.
+
+Below is an example of bypassing `x-anchor`'s internal styling and instead applying the styles yourself using `x-bind:style`:
+
+```alpine
+<div x-data="{ open: false }">
+    <button x-ref="button" @click="open = ! open">Toggle</button>
+
+    <div
+        x-show="open"
+        x-anchor.no-style="$refs.button"
+        x-bind:style="{ position: 'absolute', top: $anchor.y+'px', left: $anchor.x+'px' }"
+    >
+        Dropdown content
+    </div>
+</div>
+```
+
+> **Combining `.no-style` with `.fixed`:** when you opt out of Alpine's internal styling and also want fixed positioning, remember to set `position: 'fixed'` yourself. `$anchor.x` and `$anchor.y` are returned in the coordinate space of whichever strategy is active—absolute coordinates are relative to the offset parent, fixed coordinates are relative to the viewport—so applying the wrong `position` will put your element in the wrong place.
+>
+> ```alpine
+> <div
+>     x-show="open"
+>     x-anchor.no-style.fixed="$refs.button"
+>     x-bind:style="{ position: 'fixed', top: $anchor.y+'px', left: $anchor.x+'px' }"
+> >
+>     Dropdown content
+> </div>
+> ```
+
+## Anchor to an ID
+
+The examples thus far have all been anchoring to other elements using Alpine refs.
+
+Because `x-anchor` accepts a reference to any DOM element, you can use utilities like `document.getElementById()` to anchor to an element by its `id` attribute:
+
+```alpine
+<div x-data="{ open: false }">
+    <button id="trigger" @click="open = ! open">Toggle</button>
+
+    <div x-show="open" x-anchor="document.getElementById('trigger')">
+        Dropdown content
+    </div>
+</div>
+```
