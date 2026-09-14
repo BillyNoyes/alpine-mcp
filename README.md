@@ -41,9 +41,38 @@ Restart Claude Desktop.
 claude mcp add alpine -- npx -y alpine-mcp
 ```
 
+### OpenAI Codex
+
+```sh
+codex mcp add alpine -- npx -y alpine-mcp
+```
+
+Or add it directly to `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.alpine]
+command = "npx"
+args = ["-y", "alpine-mcp"]
+```
+
 ### Cursor
 
 Add to `~/.cursor/mcp.json` or `.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "alpine": {
+      "command": "npx",
+      "args": ["-y", "alpine-mcp"]
+    }
+  }
+}
+```
+
+### Windsurf
+
+Add to `~/.codeium/windsurf/mcp_config.json`:
 
 ```json
 {
@@ -73,6 +102,10 @@ Add to your user or workspace settings:
   }
 }
 ```
+
+### Cline and Roo Code
+
+Add a local stdio server through the extension's MCP settings using `npx` as the command and `-y alpine-mcp` as the arguments.
 
 ### Any MCP client
 
