@@ -41,9 +41,38 @@ Restart Claude Desktop.
 claude mcp add alpine -- npx -y alpine-mcp
 ```
 
+### OpenAI Codex
+
+```sh
+codex mcp add alpine -- npx -y alpine-mcp
+```
+
+Or add it directly to `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.alpine]
+command = "npx"
+args = ["-y", "alpine-mcp"]
+```
+
 ### Cursor
 
 Add to `~/.cursor/mcp.json` or `.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "alpine": {
+      "command": "npx",
+      "args": ["-y", "alpine-mcp"]
+    }
+  }
+}
+```
+
+### Windsurf
+
+Add to `~/.codeium/windsurf/mcp_config.json`:
 
 ```json
 {
@@ -73,6 +102,10 @@ Add to your user or workspace settings:
   }
 }
 ```
+
+### Cline and Roo Code
+
+Add a local stdio server through the extension's MCP settings using `npx` as the command and `-y alpine-mcp` as the arguments.
 
 ### Any MCP client
 
@@ -114,6 +147,14 @@ A weekly GitHub Actions workflow runs the same generator. Published builds use t
 Publishing a GitHub Release automatically validates, builds, and publishes the matching version to npm with provenance. The release tag must match the version in `package.json`, including the `v` prefix—for example, package version `2.0.0` must use tag `v2.0.0`. Pre-releases are published under npm's `next` dist-tag; regular releases use `latest`.
 
 Merge the publishing workflow into the default branch before creating the tag and GitHub Release. npm trusted publishing must authorize `BillyNoyes/alpine-mcp`, the `publish.yml` workflow, and the `npm` GitHub environment. The workflow uses GitHub OIDC to obtain a short-lived publishing credential, so it does not require an npm access-token secret.
+
+## Project structure
+
+- `src/index.ts` initializes the catalog, qmd index, and MCP transport.
+- `src/server/` defines the MCP server and registers resource and tool handlers.
+- `src/documents/` owns documentation discovery and resource retrieval.
+- `src/search/` owns qmd lifecycle and search-result snippets.
+- `scripts/docs/` contains the fetch, archive, corpus, and generation pipeline.
 
 ## Development
 
