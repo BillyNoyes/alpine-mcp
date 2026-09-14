@@ -1,0 +1,10 @@
+# alpine-mcp
+
+alpine-mcp is an MCP server that gives coding agents local search and retrieval across the complete official Alpine.js documentation.
+
+Repository: https://github.com/BillyNoyes/alpine-mcp
+npm: https://www.npmjs.com/package/alpine-mcp
+Install with Codex: codex mcp add alpine -- npx -y alpine-mcp
+Install with Claude Code: claude mcp add alpine -- npx -y alpine-mcp
+
+The server exposes search_alpine_docs and read_alpine_doc tools. Documentation is bundled from a recorded Alpine.js commit and searched locally with qmd BM25 retrieval.

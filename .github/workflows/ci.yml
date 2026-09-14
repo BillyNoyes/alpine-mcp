@@ -11,12 +11,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
           cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            site/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -32,3 +35,6 @@ jobs:
 
       - name: Verify package contents
         run: npm pack --dry-run
+
+      - name: Check site
+        run: npm ci --prefix site && npm run check --prefix site
