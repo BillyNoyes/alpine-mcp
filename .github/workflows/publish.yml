@@ -1,19 +1,27 @@
 name: Publish to npm
 
 on:
-  push:
-    tags:
-      - 'v*'
+  release:
+    types:
+      - published
+
+concurrency:
+  group: npm-publish-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
 
 jobs:
   publish:
     runs-on: ubuntu-latest
+    env:
+      NPM_DIST_TAG: ${{ github.event.release.prerelease && 'next' || 'latest' }}
     permissions:
       contents: read
       id-token: write
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
 
       - uses: actions/setup-node@v4
         with:
@@ -24,10 +32,30 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Verify release version
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_PRERELEASE: ${{ github.event.release.prerelease }}
+        run: |
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          LOOKUP_ERROR=$(mktemp)
+          trap 'rm -f "$LOOKUP_ERROR"' EXIT
+
+          if CURRENT_VERSION_JSON=$(npm view "$PACKAGE_NAME@$NPM_DIST_TAG" version --json 2>"$LOOKUP_ERROR"); then
+            CURRENT_VERSION=$(printf '%s' "$CURRENT_VERSION_JSON" | node -e "let input = ''; process.stdin.on('data', chunk => input += chunk).on('end', () => console.log(JSON.parse(input)))")
+          elif grep -q 'E404' "$LOOKUP_ERROR"; then
+            CURRENT_VERSION=''
+          else
+            cat "$LOOKUP_ERROR" >&2
+            exit 1
+          fi
+
+          node scripts/verify-release.mjs "$RELEASE_TAG" "$RELEASE_PRERELEASE" "$CURRENT_VERSION"
+
       - name: Validate and build
         run: npm test && npm run typecheck && npm run build
 
       - name: Publish
-        run: npm publish --provenance --access public
+        run: npm publish --provenance --access public --tag "$NPM_DIST_TAG"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -1,7 +1,19 @@
 {
   "name": "alpine-mcp",
   "version": "2.0.0",
-  "description": "MCP server providing Alpine.js documentation and reference",
+  "description": "MCP server providing Alpine.js documentation and qmd-powered search",
+  "license": "MIT",
+  "keywords": [
+    "alpinejs",
+    "mcp",
+    "model-context-protocol",
+    "documentation",
+    "qmd"
+  ],
+  "homepage": "https://github.com/BillyNoyes/alpine-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/BillyNoyes/alpine-mcp/issues"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/BillyNoyes/alpine-mcp"
@@ -17,6 +29,9 @@
     "build/",
     "docs/"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "generate": "node --import tsx/esm scripts/generate.ts",
     "build": "vite build && chmod 755 build/index.js",
@@ -31,6 +46,8 @@
   },
   "devDependencies": {
     "@types/node": "^22.20.2",
+    "@types/semver": "^7.8.0",
+    "semver": "^7.8.5",
     "tar": "^7.5.22",
     "tsx": "^4.0.0",
     "typescript": "^5.3.0",
