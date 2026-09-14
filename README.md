@@ -2,6 +2,8 @@
 
 An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server for the complete Alpine.js v3 documentation. It ships a commit-pinned snapshot of the official Markdown and uses [Tobi Lütke's qmd](https://github.com/tobi/qmd) for local full-text search.
 
+[Website](https://billynoyes.github.io/alpine-mcp/) · [npm](https://www.npmjs.com/package/alpine-mcp)
+
 ## Tools
 
 | Tool | Purpose |
@@ -155,6 +157,7 @@ Merge the publishing workflow into the default branch before creating the tag an
 - `src/documents/` owns documentation discovery and resource retrieval.
 - `src/search/` owns qmd lifecycle and search-result snippets.
 - `scripts/docs/` contains the fetch, archive, corpus, and generation pipeline.
+- `site/` contains the Vite, Alpine.js, and Tailwind GitHub Pages site.
 
 ## Development
 
