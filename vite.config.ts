@@ -3,7 +3,7 @@ import { resolve } from 'path';
 
 export default defineConfig({
   build: {
-    target: 'node18',
+    target: 'node22',
     outDir: 'build',
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
@@ -12,10 +12,12 @@ export default defineConfig({
     },
     rollupOptions: {
       external: [
+        /^node:/,
         '@modelcontextprotocol/sdk',
         '@modelcontextprotocol/sdk/server/index.js',
         '@modelcontextprotocol/sdk/server/stdio.js',
         '@modelcontextprotocol/sdk/types.js',
+        '@tobilu/qmd',
         'zod',
       ],
     },

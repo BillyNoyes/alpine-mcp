@@ -1,17 +1,19 @@
 # alpine-mcp
 
-An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that provides the complete Alpine.js documentation as resources. Gives AI assistants accurate, up-to-date reference when building with Alpine.js.
+An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server for the complete Alpine.js v3 documentation. It ships a commit-pinned snapshot of the official Markdown and uses [Tobi Lütke's qmd](https://github.com/tobi/qmd) for local full-text search.
 
-## Resources
+## Tools
 
-| URI | Contents |
-|-----|----------|
-| `alpine://directives` | All directives — x-data, x-show, x-bind, x-on, x-model, x-for, x-transition, x-effect, x-ref, x-cloak, x-teleport, x-id, and more |
-| `alpine://magics` | All magic properties — $el, $refs, $store, $watch, $dispatch, $nextTick, $root, $data, $id |
-| `alpine://globals` | Global API — Alpine.data(), Alpine.store(), Alpine.bind() |
-| `alpine://plugins` | Official plugins — Mask, Intersect, Persist, Focus, Collapse, Anchor, Morph, Sort |
+| Tool | Purpose |
+|------|---------|
+| `search_alpine_docs` | Search individual documentation pages with qmd's BM25 index |
+| `read_alpine_doc` | Read a complete page returned by search |
+
+The server also exposes each page as an `alpine://docs/<path>.md` resource. The original combined `alpine://directives`, `alpine://magics`, `alpine://globals`, and `alpine://plugins` resources remain available for compatibility.
 
 ## Installation
+
+alpine-mcp requires Node.js 22 or newer.
 
 ### Claude Desktop
 
@@ -35,28 +37,13 @@ Restart Claude Desktop.
 
 ### Claude Code
 
-Run in your terminal:
-
 ```sh
 claude mcp add alpine -- npx -y alpine-mcp
 ```
 
-Or add it to a project by creating/editing `.claude/settings.json`:
-
-```json
-{
-  "mcpServers": {
-    "alpine": {
-      "command": "npx",
-      "args": ["-y", "alpine-mcp"]
-    }
-  }
-}
-```
-
 ### Cursor
 
-Add to your global MCP config at `~/.cursor/mcp.json`, or create `.cursor/mcp.json` in your project root:
+Add to `~/.cursor/mcp.json` or `.cursor/mcp.json`:
 
 ```json
 {
@@ -68,12 +55,10 @@ Add to your global MCP config at `~/.cursor/mcp.json`, or create `.cursor/mcp.js
   }
 }
 ```
-
-Restart Cursor.
 
 ### VS Code
 
-Add to your user `settings.json` (open with **Preferences: Open User Settings (JSON)**):
+Add to your user or workspace settings:
 
 ```json
 {
@@ -89,31 +74,40 @@ Add to your user `settings.json` (open with **Preferences: Open User Settings (J
 }
 ```
 
-Or scope it to a workspace by adding the same block to `.vscode/settings.json`.
-
 ### Any MCP client
 
-Any client that supports the Model Context Protocol stdio transport can run it directly:
-
 ```sh
-npx alpine-mcp
+npx -y alpine-mcp
 ```
 
-Or install globally:
-
-```sh
-npm install -g alpine-mcp
-alpine-mcp
-```
+Each server process builds a small temporary qmd index at startup. Search is lexical and does not download qmd's optional embedding or reranking models.
 
 ## Usage
 
-Once registered, ask your AI assistant about Alpine.js and it will automatically reference the accurate documentation. For example:
+Once registered, ask your AI assistant questions such as:
 
 - *"How do I use x-transition with custom CSS classes?"*
 - *"What modifiers does x-on support?"*
 - *"How do I persist state across page loads with Alpine?"*
 - *"Show me how to use the Focus plugin for a modal."*
+
+## Documentation updates
+
+The generator resolves an Alpine branch, tag, or SHA to one immutable commit, downloads that commit's GitHub archive, and atomically replaces `docs/` only after every page has been extracted and validated. One upstream Markdown page becomes one local file, so new and removed Alpine pages are discovered without a hand-maintained manifest. `docs/.source.json` records the exact source commit.
+
+Refresh from Alpine's current `main`:
+
+```sh
+npm run generate
+```
+
+Refresh from a specific release or commit:
+
+```sh
+ALPINE_REF=v3.14.9 npm run generate
+```
+
+A weekly GitHub Actions workflow runs the same generator. Published builds use the committed snapshot rather than making network requests during packaging.
 
 ## Development
 
@@ -121,25 +115,14 @@ Once registered, ask your AI assistant about Alpine.js and it will automatically
 git clone https://github.com/BillyNoyes/alpine-mcp.git
 cd alpine-mcp
 npm install
+npm test
+npm run typecheck
 npm run build
 ```
 
-### Local config
+For local MCP configuration, run `node /path/to/alpine-mcp/build/index.js`.
 
-```json
-{
-  "mcpServers": {
-    "alpine": {
-      "command": "node",
-      "args": ["/path/to/alpine-mcp/build/index.js"]
-    }
-  }
-}
-```
-
-## Content
-
-Documentation content is sourced directly from the [official Alpine.js repository](https://github.com/alpinejs/alpine/tree/main/packages/docs/src/en) and covers Alpine.js v3.
+Documentation is sourced from the [official Alpine.js repository](https://github.com/alpinejs/alpine/tree/main/packages/docs/src/en) and redistributed under Alpine's MIT license, included at `docs/ALPINE-LICENSE.txt`.
 
 ## License
 
