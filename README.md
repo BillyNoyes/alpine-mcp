@@ -109,6 +109,12 @@ ALPINE_REF=v3.14.9 npm run generate
 
 A weekly GitHub Actions workflow runs the same generator. Published builds use the committed snapshot rather than making network requests during packaging.
 
+## Publishing
+
+Publishing a GitHub Release automatically validates, builds, and publishes the matching version to npm with provenance. The release tag must match the version in `package.json`, including the `v` prefix—for example, package version `2.0.0` must use tag `v2.0.0`. Pre-releases are published under npm's `next` dist-tag; regular releases use `latest`.
+
+Merge the publishing workflow into the default branch before creating the tag and GitHub Release. Before the first release, add an npm granular access token as the `NPM_TOKEN` GitHub Actions repository secret. The token needs read/write access to `alpine-mcp` and must bypass two-factor authentication for unattended publishing. Because this package was previously unpublished, npm may require the same owning npm account to reclaim and publish the name.
+
 ## Development
 
 ```sh
