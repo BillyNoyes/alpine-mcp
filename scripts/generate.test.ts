@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { createStore } from '@tobilu/qmd';
-import { cleanMarkdown, validateCorpus } from './generate.js';
+import { cleanMarkdown, validateCorpus } from './docs/corpus.js';
 
 test('cleanMarkdown removes site-only content without changing documentation', () => {
   const input = `---

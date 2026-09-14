@@ -115,6 +115,14 @@ Publishing a GitHub Release automatically validates, builds, and publishes the m
 
 Merge the publishing workflow into the default branch before creating the tag and GitHub Release. npm trusted publishing must authorize `BillyNoyes/alpine-mcp`, the `publish.yml` workflow, and the `npm` GitHub environment. The workflow uses GitHub OIDC to obtain a short-lived publishing credential, so it does not require an npm access-token secret.
 
+## Project structure
+
+- `src/index.ts` initializes the catalog, qmd index, and MCP transport.
+- `src/server/` defines the MCP server and registers resource and tool handlers.
+- `src/documents/` owns documentation discovery and resource retrieval.
+- `src/search/` owns qmd lifecycle and search-result snippets.
+- `scripts/docs/` contains the fetch, archive, corpus, and generation pipeline.
+
 ## Development
 
 ```sh
