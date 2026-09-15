@@ -20,11 +20,15 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
+      actions: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          ref: main
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
           cache: 'npm'
@@ -35,34 +39,34 @@ jobs:
       - name: Regenerate docs
         run: npm run generate
         env:
-          ALPINE_REF: ${{ github.event.inputs.alpine_ref || 'main' }}
+          ALPINE_REF: ${{ inputs.alpine_ref || 'main' }}
 
       - name: Validate generated docs and server
         run: npm test && npm run typecheck && npm run build
 
-      - name: Check for changes
-        id: diff
-        run: |
-          git diff --quiet docs/ || echo "changed=true" >> $GITHUB_OUTPUT
+      - name: Open or update documentation pull request
+        id: docs-pr
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
+        with:
+          base: main
+          branch: automation/update-alpine-docs
+          add-paths: docs/
+          delete-branch: true
+          commit-message: 'chore: update Alpine.js docs from upstream'
+          title: 'Update Alpine.js documentation snapshot'
+          body: |
+            Refresh the bundled documentation from the official Alpine.js repository.
 
-      - name: Commit updated docs
-        if: steps.diff.outputs.changed == 'true'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs/
-          git commit -m "chore: update Alpine.js docs from upstream"
-          git push
+            The source ref and resolved commit are recorded in `docs/.source.json`.
+            This PR changes documentation only. It does not bump the package version,
+            create a release, or publish to npm. Review and merge it before preparing
+            the next versioned GitHub Release.
 
-      - name: Bump version and tag
-        if: steps.diff.outputs.changed == 'true'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          npm version patch --no-git-tag-version
-          VERSION=$(node -p "require('./package.json').version")
-          git add package.json package-lock.json
-          git commit -m "chore: bump to v${VERSION}"
-          git tag "v${VERSION}"
-          git push
-          git push --tags
+      # GITHUB_TOKEN-created PRs do not trigger pull_request workflows automatically.
+      - name: Run required CI on the documentation branch
+        if: steps.docs-pr.outputs.pull-request-number && steps.docs-pr.outputs.pull-request-operation != 'closed'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          DOCS_BRANCH: ${{ steps.docs-pr.outputs.pull-request-branch }}
+        run: gh workflow run ci.yml --ref "$DOCS_BRANCH"
