@@ -2,6 +2,7 @@ import {access, readFile, readdir} from 'node:fs/promises';
 
 await Promise.all([
   access(new URL('../dist/index.html', import.meta.url)),
+  access(new URL('../dist/alpine-mcp.svg', import.meta.url)),
   access(new URL('../dist/robots.txt', import.meta.url)),
   access(new URL('../dist/sitemap.xml', import.meta.url)),
   access(new URL('../dist/llms.txt', import.meta.url)),
