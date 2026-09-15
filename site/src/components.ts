@@ -1,3 +1,5 @@
+import {installOptions, type ClientName} from './install-options';
+
 interface SearchDocument {
   path: string;
   title: string;
@@ -71,20 +73,19 @@ export function createSearchDemo() {
   };
 }
 
-const installCommands = {
-  codex: 'codex mcp add alpine -- npx -y alpine-mcp',
-  claude: 'claude mcp add alpine -- npx -y alpine-mcp',
-  direct: 'npx -y alpine-mcp',
-} as const;
-
-type ClientName = keyof typeof installCommands;
-
 export function createInstallTabs() {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let request = 0;
+
   return {
+    clients: installOptions,
     active: 'codex' as ClientName,
     copyState: 'idle' as 'idle' | 'copied' | 'unavailable' | 'error',
+    get selected() {
+      return installOptions.find(({id}) => id === this.active) ?? installOptions[0];
+    },
     get command() {
-      return installCommands[this.active];
+      return this.selected.code;
     },
     get copyLabel() {
       if (this.copyState === 'copied') return 'Copied';
@@ -93,10 +94,14 @@ export function createInstallTabs() {
       return 'Copy';
     },
     select(client: ClientName) {
+      request += 1;
+      clearTimeout(timer);
       this.active = client;
       this.copyState = 'idle';
     },
     async copy() {
+      const currentRequest = ++request;
+      clearTimeout(timer);
       if (!navigator.clipboard?.writeText) {
         this.copyState = 'unavailable';
         return;
@@ -104,13 +109,18 @@ export function createInstallTabs() {
 
       try {
         await navigator.clipboard.writeText(this.command);
+        if (currentRequest !== request) return;
         this.copyState = 'copied';
-        window.setTimeout(() => {
+        timer = setTimeout(() => {
           this.copyState = 'idle';
         }, 2_000);
       } catch {
-        this.copyState = 'error';
+        if (currentRequest === request) this.copyState = 'error';
       }
+    },
+    destroy() {
+      request += 1;
+      clearTimeout(timer);
     },
   };
 }

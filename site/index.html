@@ -19,7 +19,7 @@
     <meta property="og:url" content="https://alpine-mcp.billynoyes.co.uk/" />
     <meta name="twitter:card" content="summary" />
     <link rel="canonical" href="https://alpine-mcp.billynoyes.co.uk/" />
-    <link rel="icon" href="/alpine-mcp.svg" type="image/svg+xml" />
+    <link rel="icon" href="/alpine-mcp.svg?v=2" type="image/svg+xml" />
     <link
       rel="preload"
       href="/fonts/inter_n4.b2a3f24c19b4de56e8871f609e73ca7f6d2e2bb9.woff2"
@@ -47,10 +47,10 @@
     <header class="mx-auto flex h-14 w-full max-w-none items-center justify-between px-3 md:px-5">
       <a
         href="/"
-        class="inline-flex cursor-pointer items-center gap-2.5 font-mono text-[15px] font-bold tracking-[-0.03em] focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4"
+        class="inline-flex cursor-pointer items-center gap-2.5 font-sans text-xl/6 font-normal focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4"
         aria-label="alpine-mcp home"
       >
-        <img src="/alpine-mcp.svg" alt="" width="28" height="28" class="size-7 shrink-0" />
+        <img src="/alpine-mcp.svg?v=2" alt="" width="28" height="28" class="size-7 shrink-0" />
         <span>alpine/mcp</span>
       </a>
       <nav aria-label="Primary navigation" class="flex items-center gap-5 text-sm text-muted dark:text-night-muted">
@@ -210,35 +210,38 @@
           <div class="lg:col-span-4">
             <h2 class="text-3xl/[1.08] font-bold tracking-[-0.045em] md:text-4xl/[1.06]">Install once.</h2>
             <p class="mt-5 max-w-[42ch] text-base/7 text-muted dark:text-night-muted">
-              Choose a setup, run one command, then ask about Alpine.js.
+              Choose your client, copy its command or configuration, then ask about Alpine.js.
             </p>
             <p class="mt-8 text-sm text-muted dark:text-night-muted">Requires Node.js 22 or newer.</p>
           </div>
           <div class="min-w-0 lg:col-span-7 lg:col-start-6">
-            <div class="flex max-w-full gap-1 overflow-x-auto border-b border-line pb-px dark:border-night-line" role="group" aria-label="MCP client setup options">
-              <template x-for="client in ['codex', 'claude', 'direct']" :key="client">
+            <div class="flex max-w-full flex-wrap gap-1 border-b border-line pb-px dark:border-night-line" role="group" aria-label="MCP client setup options">
+              <template x-for="client in clients" :key="client.id">
                 <button
                   type="button"
-                  :aria-pressed="active === client"
-                  @click="select(client)"
-                  class="cursor-pointer whitespace-nowrap border-b-2 px-3 py-3 text-sm capitalize focus-visible:outline-2 focus-visible:outline-offset-[-2px]"
-                  :class="active === client ? 'border-ink font-bold text-ink dark:border-white dark:text-white' : 'border-transparent text-muted hover:text-ink dark:text-night-muted dark:hover:text-white'"
-                  x-text="client === 'claude' ? 'Claude Code' : client"
+                  :aria-pressed="active === client.id"
+                  aria-controls="install-command"
+                  @click="select(client.id)"
+                  class="cursor-pointer whitespace-nowrap border-b-2 px-3 py-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-[-2px]"
+                  :class="active === client.id ? 'border-ink font-bold text-ink dark:border-white dark:text-white' : 'border-transparent text-muted hover:text-ink dark:text-night-muted dark:hover:text-white'"
+                  x-text="client.label"
                 ></button>
               </template>
             </div>
-            <div id="install-command" class="mt-6 flex min-w-0 flex-col gap-3 rounded-lg border border-line bg-paper p-4 dark:border-night-line dark:bg-night sm:flex-row sm:items-center">
-              <code class="min-w-0 flex-1 overflow-x-auto whitespace-nowrap font-mono text-sm" x-text="command"></code>
+            <p id="install-instructions" class="mt-6 text-sm/6 text-muted dark:text-night-muted" x-text="selected.instructions"></p>
+            <div id="install-command" class="mt-4 grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-line bg-paper p-4 dark:border-night-line dark:bg-night">
+              <p id="install-location" class="min-w-0 break-words font-mono text-xs text-muted dark:text-night-muted" x-text="selected.location"></p>
               <button
                 type="button"
                 @click="copy"
                 class="min-h-9 shrink-0 cursor-pointer rounded-md border border-line bg-white px-3 text-sm font-bold hover:bg-neutral-100 active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-4 dark:border-night-line dark:bg-night-panel dark:hover:bg-neutral-800"
                 x-text="copyLabel"
               ></button>
-              <span class="sr-only" aria-live="polite" x-text="copyState === 'copied' ? 'Command copied to clipboard.' : copyState === 'error' ? 'Could not copy the command.' : ''"></span>
+              <pre class="col-span-2 min-w-0 overflow-x-auto font-mono text-sm/6 focus-visible:outline-2 focus-visible:outline-offset-4" tabindex="0" role="region" aria-labelledby="install-location" aria-describedby="install-instructions"><code x-text="command"></code></pre>
+              <span class="sr-only" aria-live="polite" x-text="copyState === 'copied' ? 'Setup copied to clipboard.' : copyState === 'error' ? 'Could not copy. Select the text to copy manually.' : copyState === 'unavailable' ? 'Clipboard unavailable. Select the text to copy manually.' : ''"></span>
             </div>
             <p class="mt-4 text-sm/6 text-muted dark:text-night-muted">
-              Also works with Claude Desktop, Windsurf, Cline, Roo Code, and any stdio-compatible MCP client.
+              For Cline, Roo Code, or another stdio-compatible MCP client, add a local server with command <code class="font-mono">npx</code> and arguments <code class="font-mono">-y alpine-mcp</code> in its MCP settings.
             </p>
           </div>
         </div>
