@@ -2,7 +2,7 @@
 
 An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server for the complete Alpine.js v3 documentation. It ships a commit-pinned snapshot of the official Markdown and uses [Tobi Lütke's qmd](https://github.com/tobi/qmd) for local full-text search.
 
-[Website](https://billynoyes.github.io/alpine-mcp/) · [npm](https://www.npmjs.com/package/alpine-mcp)
+[Website](https://alpine-mcp.billynoyes.co.uk/) · [npm](https://www.npmjs.com/package/alpine-mcp)
 
 ## Tools
 

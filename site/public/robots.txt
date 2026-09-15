@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://billynoyes.github.io/alpine-mcp/sitemap.xml
+Sitemap: https://alpine-mcp.billynoyes.co.uk/sitemap.xml

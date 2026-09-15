@@ -12,6 +12,9 @@ const assets = await readdir(new URL('../dist/assets', import.meta.url));
 
 if (!index.includes('alpine/mcp')) throw new Error('Built page is missing the site identity');
 if (index.includes('/src/main.ts')) throw new Error('Built page still references source TypeScript');
+if (!index.includes('src="/assets/site.js"') || !index.includes('href="/assets/site.css"')) {
+  throw new Error('Built page assets must resolve from the custom domain root');
+}
 if (!assets.includes('site.css') || !assets.includes('site.js')) {
   throw new Error('Built page is missing stable CSS or JavaScript assets');
 }
