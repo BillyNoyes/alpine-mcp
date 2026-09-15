@@ -21,7 +21,6 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-      actions: write
 
     steps:
       - uses: actions/checkout@v5
@@ -45,7 +44,6 @@ jobs:
         run: npm test && npm run typecheck && npm run build
 
       - name: Open or update documentation pull request
-        id: docs-pr
         uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
         with:
           base: main
@@ -59,14 +57,9 @@ jobs:
 
             The source ref and resolved commit are recorded in `docs/.source.json`.
             This PR changes documentation only. It does not bump the package version,
-            create a release, or publish to npm. Review and merge it before preparing
-            the next versioned GitHub Release.
+            create a release, or publish to npm.
 
-      # GITHUB_TOKEN-created PRs do not trigger pull_request workflows automatically.
-      - name: Run required CI on the documentation branch
-        if: steps.docs-pr.outputs.pull-request-number && steps.docs-pr.outputs.pull-request-operation != 'closed'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          DOCS_BRANCH: ${{ steps.docs-pr.outputs.pull-request-branch }}
-        run: gh workflow run ci.yml --ref "$DOCS_BRANCH"
+            GitHub may hold bot-created PR workflow runs for maintainer approval.
+            Review the diff and approve the pending CI run in GitHub Actions. Wait
+            for the required `validate` check before merging, then prepare the next
+            versioned GitHub Release when ready to publish.
