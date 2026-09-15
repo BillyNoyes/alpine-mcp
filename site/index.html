@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="scheme-light dark:scheme-dark">
+<html lang="en" class="scroll-smooth scheme-light motion-reduce:scroll-auto dark:scheme-dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -19,6 +19,7 @@
     <meta property="og:url" content="https://alpine-mcp.billynoyes.co.uk/" />
     <meta name="twitter:card" content="summary" />
     <link rel="canonical" href="https://alpine-mcp.billynoyes.co.uk/" />
+    <link rel="icon" href="/alpine-mcp.svg" type="image/svg+xml" />
     <link
       rel="preload"
       href="/fonts/inter_n4.b2a3f24c19b4de56e8871f609e73ca7f6d2e2bb9.woff2"
@@ -38,24 +39,25 @@
   <body class="min-h-dvh bg-paper font-sans text-ink antialiased dark:bg-night dark:text-neutral-100">
     <a
       href="#main"
-      class="fixed top-3 left-3 z-50 -translate-y-[160%] rounded-md bg-ink px-3 py-2 text-sm font-bold text-white focus:translate-y-0 focus-visible:outline-2 focus-visible:outline-offset-4 dark:bg-white dark:text-night"
+      class="fixed top-3 left-3 z-50 cursor-pointer -translate-y-[160%] rounded-md bg-ink px-3 py-2 text-sm font-bold text-white focus:translate-y-0 focus-visible:outline-2 focus-visible:outline-offset-4 dark:bg-white dark:text-night"
     >
       Skip to content
     </a>
 
-    <header class="mx-auto flex h-16 w-full max-w-[1440px] items-center justify-between px-4 md:px-8">
+    <header class="mx-auto flex h-14 w-full max-w-none items-center justify-between px-3 md:px-5">
       <a
         href="/"
-        class="font-mono text-[15px] font-bold tracking-[-0.03em] focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4"
+        class="inline-flex cursor-pointer items-center gap-2.5 font-mono text-[15px] font-bold tracking-[-0.03em] focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4"
         aria-label="alpine-mcp home"
       >
-        alpine/mcp
+        <img src="/alpine-mcp.svg" alt="" width="28" height="28" class="size-7 shrink-0" />
+        <span>alpine/mcp</span>
       </a>
       <nav aria-label="Primary navigation" class="flex items-center gap-5 text-sm text-muted dark:text-night-muted">
-        <a class="hidden hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-4 dark:hover:text-white sm:inline" href="#install">Install</a>
-        <a class="hidden hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-4 dark:hover:text-white sm:inline" href="#how-it-works">How it works</a>
+        <a class="hidden cursor-pointer hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-4 dark:hover:text-white sm:inline" href="#install">Install</a>
+        <a class="hidden cursor-pointer hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-4 dark:hover:text-white sm:inline" href="#how-it-works">How it works</a>
         <a
-          class="rounded-md border border-line px-3 py-1.5 font-bold text-ink hover:bg-neutral-100 active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-4 dark:border-night-line dark:text-white dark:hover:bg-night-panel"
+          class="cursor-pointer rounded-md border border-line px-3 py-1.5 font-bold text-ink hover:bg-neutral-100 active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-4 dark:border-night-line dark:text-white dark:hover:bg-night-panel"
           href="https://github.com/BillyNoyes/alpine-mcp"
         >
           GitHub
@@ -64,7 +66,7 @@
     </header>
 
     <main id="main" tabindex="-1">
-      <section class="mx-auto grid min-h-[calc(100dvh-4rem)] w-full max-w-[1440px] grid-cols-1 content-center gap-12 px-4 py-14 md:px-8 lg:grid-cols-12 lg:gap-8 lg:py-20">
+      <section class="mx-auto grid min-h-[calc(100dvh-3.5rem)] w-full max-w-none grid-cols-1 content-center gap-14 px-3 py-16 md:px-5 md:py-20 lg:grid-cols-12 lg:gap-16">
         <div class="flex min-w-0 flex-col justify-center lg:col-span-5 lg:pr-8">
           <p class="mb-5 font-mono text-sm text-muted dark:text-night-muted">Official Alpine.js docs. Local qmd search.</p>
           <h1 class="max-w-[12ch] text-4xl/[1.04] font-bold tracking-[-0.055em] sm:text-5xl/[1.02] lg:text-6xl/[1.02]">
@@ -76,13 +78,13 @@
           <div class="mt-8 flex flex-wrap items-center gap-3">
             <a
               href="#install"
-              class="inline-flex min-h-10 items-center justify-center whitespace-nowrap rounded-md bg-ink px-4 text-sm font-bold text-white hover:bg-neutral-700 active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-4 dark:bg-white dark:text-night dark:hover:bg-neutral-200"
+              class="inline-flex min-h-10 cursor-pointer items-center justify-center whitespace-nowrap rounded-md bg-ink px-4 text-sm font-bold text-white hover:bg-neutral-700 active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-4 dark:bg-white dark:text-night dark:hover:bg-neutral-200"
             >
               Install alpine-mcp
             </a>
             <a
               href="https://www.npmjs.com/package/alpine-mcp"
-              class="inline-flex min-h-10 items-center justify-center whitespace-nowrap rounded-md border border-line px-4 text-sm font-bold hover:bg-neutral-100 active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-4 dark:border-night-line dark:hover:bg-night-panel"
+              class="inline-flex min-h-10 cursor-pointer items-center justify-center whitespace-nowrap rounded-md border border-line px-4 text-sm font-bold hover:bg-neutral-100 active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-4 dark:border-night-line dark:hover:bg-night-panel"
             >
               View on npm
             </a>
@@ -111,7 +113,7 @@
                 <button
                   type="button"
                   @click="search"
-                  class="min-h-11 shrink-0 rounded-md bg-ink px-4 text-sm font-bold text-white hover:bg-neutral-700 active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-4 dark:bg-white dark:text-night dark:hover:bg-neutral-200"
+                  class="min-h-11 shrink-0 cursor-pointer rounded-md bg-ink px-4 text-sm font-bold text-white hover:bg-neutral-700 active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-4 dark:bg-white dark:text-night dark:hover:bg-neutral-200"
                 >
                   Search
                 </button>
@@ -145,7 +147,7 @@
       </section>
 
       <section id="how-it-works" class="border-y border-line dark:border-night-line">
-        <div class="mx-auto w-full max-w-[1440px] px-4 py-20 md:px-8 md:py-28">
+        <div class="mx-auto w-full max-w-none px-3 py-20 md:px-5 md:py-28">
           <h2 class="max-w-[16ch] text-3xl/[1.08] font-bold tracking-[-0.045em] md:text-4xl/[1.06]">
             From broad question to exact source.
           </h2>
@@ -169,7 +171,7 @@
         </div>
       </section>
 
-      <section class="mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-12 px-4 py-20 md:px-8 md:py-32 lg:grid-cols-12 lg:gap-8">
+      <section class="mx-auto grid w-full max-w-none grid-cols-1 gap-12 px-3 py-20 md:px-5 md:py-32 lg:grid-cols-12 lg:gap-16">
         <div class="lg:col-span-5">
           <h2 class="max-w-[14ch] text-3xl/[1.08] font-bold tracking-[-0.045em] md:text-4xl/[1.06]">
             One page in. One page out.
@@ -204,7 +206,7 @@
       </section>
 
       <section id="install" class="border-y border-line dark:border-night-line">
-        <div class="mx-auto grid w-full max-w-[1440px] grid-cols-1 gap-12 px-4 py-20 md:px-8 md:py-28 lg:grid-cols-12 lg:gap-8" x-data="installTabs">
+        <div class="mx-auto grid w-full max-w-none grid-cols-1 gap-12 px-3 py-20 md:px-5 md:py-28 lg:grid-cols-12 lg:gap-16" x-data="installTabs">
           <div class="lg:col-span-4">
             <h2 class="text-3xl/[1.08] font-bold tracking-[-0.045em] md:text-4xl/[1.06]">Install once.</h2>
             <p class="mt-5 max-w-[42ch] text-base/7 text-muted dark:text-night-muted">
@@ -219,7 +221,7 @@
                   type="button"
                   :aria-pressed="active === client"
                   @click="select(client)"
-                  class="whitespace-nowrap border-b-2 px-3 py-3 text-sm capitalize focus-visible:outline-2 focus-visible:outline-offset-[-2px]"
+                  class="cursor-pointer whitespace-nowrap border-b-2 px-3 py-3 text-sm capitalize focus-visible:outline-2 focus-visible:outline-offset-[-2px]"
                   :class="active === client ? 'border-ink font-bold text-ink dark:border-white dark:text-white' : 'border-transparent text-muted hover:text-ink dark:text-night-muted dark:hover:text-white'"
                   x-text="client === 'claude' ? 'Claude Code' : client"
                 ></button>
@@ -230,7 +232,7 @@
               <button
                 type="button"
                 @click="copy"
-                class="min-h-9 shrink-0 rounded-md border border-line bg-white px-3 text-sm font-bold hover:bg-neutral-100 active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-4 dark:border-night-line dark:bg-night-panel dark:hover:bg-neutral-800"
+                class="min-h-9 shrink-0 cursor-pointer rounded-md border border-line bg-white px-3 text-sm font-bold hover:bg-neutral-100 active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-4 dark:border-night-line dark:bg-night-panel dark:hover:bg-neutral-800"
                 x-text="copyLabel"
               ></button>
               <span class="sr-only" aria-live="polite" x-text="copyState === 'copied' ? 'Command copied to clipboard.' : copyState === 'error' ? 'Could not copy the command.' : ''"></span>
@@ -242,7 +244,7 @@
         </div>
       </section>
 
-      <section class="mx-auto w-full max-w-[1440px] px-4 py-20 md:px-8 md:py-32">
+      <section class="mx-auto w-full max-w-none px-3 py-20 md:px-5 md:py-32">
         <div class="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-8">
           <h2 class="max-w-[15ch] text-3xl/[1.08] font-bold tracking-[-0.045em] md:text-4xl/[1.06] lg:col-span-5">
             Current docs. Reproducible package.
@@ -267,13 +269,13 @@
       </section>
 
       <section class="border-t border-line dark:border-night-line">
-        <div class="mx-auto flex w-full max-w-[1440px] flex-col items-start justify-between gap-8 px-4 py-20 md:flex-row md:items-end md:px-8 md:py-24">
+        <div class="mx-auto flex w-full max-w-none flex-col items-start justify-between gap-8 px-3 py-20 md:flex-row md:items-end md:px-5 md:py-24">
           <h2 class="max-w-[15ch] text-3xl/[1.08] font-bold tracking-[-0.045em] md:text-5xl/[1.04]">
             Put Alpine’s source within reach.
           </h2>
           <a
             href="https://github.com/BillyNoyes/alpine-mcp"
-            class="inline-flex min-h-10 items-center justify-center whitespace-nowrap rounded-md bg-ink px-4 text-sm font-bold text-white hover:bg-neutral-700 active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-4 dark:bg-white dark:text-night dark:hover:bg-neutral-200"
+            class="inline-flex min-h-10 cursor-pointer items-center justify-center whitespace-nowrap rounded-md bg-ink px-4 text-sm font-bold text-white hover:bg-neutral-700 active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-4 dark:bg-white dark:text-night dark:hover:bg-neutral-200"
           >
             View on GitHub
           </a>
@@ -282,7 +284,7 @@
     </main>
 
     <footer class="border-t border-line dark:border-night-line">
-      <div class="mx-auto flex w-full max-w-[1440px] flex-col gap-4 px-4 py-6 text-xs text-muted dark:text-night-muted md:flex-row md:items-center md:justify-between md:px-8">
+      <div class="mx-auto flex w-full max-w-none flex-col gap-4 px-3 py-6 text-xs text-muted dark:text-night-muted md:flex-row md:items-center md:justify-between md:px-5">
         <span class="font-mono text-ink dark:text-white">alpine/mcp</span>
         <span>Open source under MIT. Alpine.js documentation retains its original license.</span>
       </div>

@@ -10,4 +10,6 @@ The regular and bold Inter faces in `public/fonts/` mirror the self-hosted setup
 
 ## Visual assets
 
+`public/alpine-mcp.svg` is the original alpine-mcp mark used in the header and as the favicon. Its rounded dark tile and white linework follow the visual language of Easel's mark, while the mountain-shaped `A` and connected nodes represent Alpine.js documentation delivered through MCP.
+
 The site intentionally uses the working search preview as its primary visual evidence. It does not use stock imagery, decorative illustrations, fake application screenshots, or third-party runtime assets.
