@@ -89,17 +89,15 @@ Add to `~/.codeium/windsurf/mcp_config.json`:
 
 ### VS Code
 
-Add to your user or workspace settings:
+Add to `.vscode/mcp.json` in your workspace for GitHub Copilot. If the file already exists, merge the `alpine` entry into its top-level `servers` object:
 
 ```json
 {
-  "mcp": {
-    "servers": {
-      "alpine": {
-        "type": "stdio",
-        "command": "npx",
-        "args": ["-y", "alpine-mcp"]
-      }
+  "servers": {
+    "alpine": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "alpine-mcp"]
     }
   }
 }
@@ -142,7 +140,11 @@ Refresh from a specific release or commit:
 ALPINE_REF=v3.14.9 npm run generate
 ```
 
-A weekly GitHub Actions workflow runs the same generator. Published builds use the committed snapshot rather than making network requests during packaging.
+A weekly GitHub Actions workflow runs the same generator and opens or updates a documentation-only pull request on `automation/update-alpine-docs`. It explicitly dispatches the required CI check for that branch, because pull requests created with `GITHUB_TOKEN` do not trigger PR workflows automatically. It never pushes directly to protected `main` or creates version tags.
+
+The repository must enable **Settings → Actions → General → Allow GitHub Actions to create and approve pull requests**. The updater only creates and updates PRs; it does not approve or merge them. No additional access-token secret is needed.
+
+After reviewing and merging a docs update, bump and commit the package version and publish a matching GitHub Release to ship it to npm. Installed packages use their bundled snapshot; they do not fetch upstream docs at startup. Published builds use committed Markdown rather than making network requests during packaging.
 
 ## Publishing
 
