@@ -57,6 +57,18 @@ For example, here's a simple example of using `x-resize` to display the width an
 
 ## Modifiers
 
+### .viewport
+
+The visual viewport is the portion of the page currently visible on screen. On mobile browsers, it can change independently of the document when browser controls or the on-screen keyboard appear. Use the `.viewport` modifier to react to these changes using `window.visualViewport`:
+
+```alpine
+<div x-resize.viewport="width = $width; height = $height">
+    ...
+</div>
+```
+
+`$width` and `$height` contain the visual viewport's dimensions. In browsers where `window.visualViewport` is unavailable, Alpine falls back to observing the document.
+
 ### .document
 
 It's often useful to observe the entire document's size, rather than a specific element. To do this, you can add the `.document` modifier to `x-resize`:
