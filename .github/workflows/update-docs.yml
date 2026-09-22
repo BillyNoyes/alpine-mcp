@@ -19,6 +19,7 @@ jobs:
   update:
     runs-on: ubuntu-latest
     permissions:
+      actions: write
       contents: write
       pull-requests: write
 
@@ -62,6 +63,14 @@ jobs:
 
             The pull request is automatically squash-merged after the required
             `validate` check passes. A failed check leaves it open for investigation.
+
+      # Events created with GITHUB_TOKEN are not guaranteed to start another workflow.
+      - name: Start required CI on the documentation branch
+        if: steps.docs-pr.outputs.pull-request-operation == 'created' || steps.docs-pr.outputs.pull-request-operation == 'updated'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DOCS_BRANCH: ${{ steps.docs-pr.outputs.pull-request-branch }}
+        run: gh workflow run ci.yml --repo "$GITHUB_REPOSITORY" --ref "$DOCS_BRANCH"
 
       - name: Enable auto-merge after validation
         if: steps.docs-pr.outputs.pull-request-operation == 'created' || steps.docs-pr.outputs.pull-request-operation == 'updated'
