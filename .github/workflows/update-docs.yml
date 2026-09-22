@@ -44,6 +44,7 @@ jobs:
         run: npm test && npm run typecheck && npm run build
 
       - name: Open or update documentation pull request
+        id: docs-pr
         uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
         with:
           base: main
@@ -59,7 +60,12 @@ jobs:
             This PR changes documentation only. It does not bump the package version,
             create a release, or publish to npm.
 
-            GitHub may hold bot-created PR workflow runs for maintainer approval.
-            Review the diff and approve the pending CI run in GitHub Actions. Wait
-            for the required `validate` check before merging, then prepare the next
-            versioned GitHub Release when ready to publish.
+            The pull request is automatically squash-merged after the required
+            `validate` check passes. A failed check leaves it open for investigation.
+
+      - name: Enable auto-merge after validation
+        if: steps.docs-pr.outputs.pull-request-operation == 'created' || steps.docs-pr.outputs.pull-request-operation == 'updated'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.docs-pr.outputs.pull-request-number }}
+        run: gh pr merge --repo "$GITHUB_REPOSITORY" --squash --auto "$PR_NUMBER"
