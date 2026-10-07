@@ -1,6 +1,9 @@
 name: CI
 
 on:
+  # The docs updater dispatches this workflow on its PR branch: pull_request runs for
+  # PRs opened with GITHUB_TOKEN wait for manual approval, dispatched runs do not.
+  workflow_dispatch:
   pull_request:
   push:
     branches:

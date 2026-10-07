@@ -64,16 +64,19 @@ jobs:
             The pull request is automatically squash-merged after the required
             `validate` check passes. A failed check leaves it open for investigation.
 
-      # Events created with GITHUB_TOKEN are not guaranteed to start another workflow.
+      # GitHub holds pull_request runs for PRs opened with GITHUB_TOKEN until a maintainer
+      # approves them, and no repository setting exempts github-actions[bot]. A
+      # workflow_dispatch run is exempt, and its `validate` check lands on the PR head
+      # commit, which satisfies branch protection without approval.
       - name: Start required CI on the documentation branch
-        if: steps.docs-pr.outputs.pull-request-operation == 'created' || steps.docs-pr.outputs.pull-request-operation == 'updated'
+        if: steps.docs-pr.outputs.pull-request-number != '' && steps.docs-pr.outputs.pull-request-operation != 'closed'
         env:
           GH_TOKEN: ${{ github.token }}
           DOCS_BRANCH: ${{ steps.docs-pr.outputs.pull-request-branch }}
         run: gh workflow run ci.yml --repo "$GITHUB_REPOSITORY" --ref "$DOCS_BRANCH"
 
       - name: Enable auto-merge after validation
-        if: steps.docs-pr.outputs.pull-request-operation == 'created' || steps.docs-pr.outputs.pull-request-operation == 'updated'
+        if: steps.docs-pr.outputs.pull-request-number != '' && steps.docs-pr.outputs.pull-request-operation != 'closed'
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ steps.docs-pr.outputs.pull-request-number }}

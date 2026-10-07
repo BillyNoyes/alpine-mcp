@@ -142,11 +142,11 @@ ALPINE_REF=v3.14.9 npm run generate
 
 A weekly GitHub Actions workflow runs the same generator and opens or updates a documentation-only pull request on `automation/update-alpine-docs`. It never pushes directly to protected `main` or creates version tags.
 
-The repository must enable **Settings → Actions → General → Allow GitHub Actions to create and approve pull requests**. The updater only creates and updates PRs; it does not approve or merge them. No additional access-token secret is needed.
+The repository must enable **Settings → Actions → General → Allow GitHub Actions to create and approve pull requests** and **Settings → General → Allow auto-merge**. No additional access-token secret is needed.
 
-GitHub may hold CI runs for bot-created PRs for maintainer approval. Review the docs diff, approve the pending run in GitHub Actions, and wait for the normal PR `validate` check before merging. A manually dispatched workflow is not a substitute for that required PR check.
+The updater runs unattended. GitHub holds `pull_request` workflow runs for PRs opened with `GITHUB_TOKEN` until a maintainer approves them, so that run shows as waiting for approval and can be ignored. The updater instead dispatches `ci.yml` on the documentation branch; the dispatched run reports the required `validate` check on the PR's head commit and needs no approval. It then enables squash auto-merge, so a passing update lands on `main` by itself and a failing one stays open for investigation.
 
-After reviewing and merging a docs update, bump and commit the package version and publish a matching GitHub Release to ship it to npm. Installed packages use their bundled snapshot; they do not fetch upstream docs at startup. Published builds use committed Markdown rather than making network requests during packaging.
+After a docs update merges, bump and commit the package version and publish a matching GitHub Release to ship it to npm. Installed packages use their bundled snapshot; they do not fetch upstream docs at startup. Published builds use committed Markdown rather than making network requests during packaging.
 
 ## Publishing
 
